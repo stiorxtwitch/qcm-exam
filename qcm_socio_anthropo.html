@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>QCM — Sociologie &amp; Anthropologie</title>
+<style>
+  :root{
+    --ink:#2b2e2c;
+    --paper:#f6f3ec;
+    --panel:#ffffff;
+    --sage:#5c7d6a;
+    --sage-dark:#3e5b4c;
+    --clay:#c96f4a;
+    --clay-soft:#f1d9cd;
+    --ok:#4a7c59;
+    --ok-bg:#e3efe4;
+    --bad:#b4483a;
+    --bad-bg:#f6e2dd;
+    --line:#d9d3c4;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  .app{width:100%;max-width:680px;}
+
+  header.top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+    margin-bottom:22px;
+  }
+  header.top .mark{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--sage-dark);
+  }
+  header.top h1{
+    font-size:20px;
+    margin:2px 0 0;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:26px;
+    font-family:'Courier New',monospace;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background:var(--line);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--sage);
+    transition:width .35s ease;
+  }
+  .progress-label{
+    font-size:12px;
+    color:var(--sage-dark);
+    white-space:nowrap;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 26px;
+    box-shadow:0 1px 0 var(--line);
+  }
+  .chapter{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--sage-dark);
+    margin-bottom:10px;
+  }
+  .question{
+    font-size:19px;
+    line-height:1.45;
+    margin:0 0 22px;
+    font-weight:600;
+  }
+
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    text-align:left;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    border-radius:8px;
+    padding:13px 16px;
+    font-family:inherit;
+    font-size:15.5px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    line-height:1.4;
+    transition:border-color .15s, background .15s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--sage);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{
+    font-family:'Courier New',monospace;
+    font-weight:700;
+    color:var(--sage-dark);
+    flex-shrink:0;
+  }
+  .opt.correct{background:var(--ok-bg);border-color:var(--ok);}
+  .opt.correct .letter{color:var(--ok);}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);}
+  .opt.wrong .letter{color:var(--bad);}
+  .opt.dim{opacity:.55;}
+
+  .feedback{
+    margin-top:20px;
+    padding:16px 18px;
+    border-radius:8px;
+    font-size:15px;
+    line-height:1.55;
+  }
+  .feedback.ok{background:var(--ok-bg);border-left:4px solid var(--ok);}
+  .feedback.bad{background:var(--bad-bg);border-left:4px solid var(--bad);}
+  .feedback .fb-head{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:6px;
+    font-weight:700;
+  }
+  .feedback.ok .fb-head{color:var(--ok);}
+  .feedback.bad .fb-head{color:var(--bad);}
+
+  .nav-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:22px;
+  }
+  button.next{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:var(--sage-dark);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  button.next:hover{background:var(--sage);}
+
+  .end-card{text-align:center;padding:40px 26px;}
+  .end-score{
+    font-size:52px;
+    font-weight:700;
+    color:var(--sage-dark);
+    margin:6px 0;
+  }
+  .end-score span{font-size:22px;color:var(--ink);opacity:.6;}
+  .end-msg{font-size:16px;margin:14px 0 24px;line-height:1.5;}
+  .restart{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:none;
+    border:1.5px solid var(--sage-dark);
+    color:var(--sage-dark);
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  .restart:hover{background:var(--sage-dark);color:#fff;}
+
+  .review-banner{
+    background:var(--clay-soft);
+    border:1px solid var(--clay);
+    border-radius:8px;
+    padding:12px 16px;
+    font-size:14px;
+    margin-bottom:16px;
+    color:#7a3a24;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="mark">HEPL — Révision</div>
+      <h1>Sociologie &amp; Anthropologie</h1>
+    </div>
+  </header>
+  <div id="root"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+{c:"Ch.1 — Introduction", q:"À quel niveau d'analyse sociologique appartiennent les normes de proxémique ?", opts:[
+  "Niveau macro",
+  "Niveau méso",
+  "Niveau micro",
+  "Aucun de ces niveaux"
+], correct:2, exp:"Le niveau micro concerne les comportements interpersonnels, comme les normes de proxémique (distances interpersonnelles). Le macro concerne les phénomènes à grande échelle, le méso le fonctionnement des organisations."},
+
+{c:"Ch.1 — Vocation scientifique", q:"Quelles sont les 3 étapes de la démarche scientifique en sociologie ?", opts:[
+  "Observation, intuition, généralisation",
+  "Formulation d'hypothèses, recueil d'informations, analyse objective des résultats",
+  "Enquête, interview, publication",
+  "Croyance, vérification, conclusion subjective"
+], correct:1, exp:"La sociologie est une science car elle suit une démarche rigoureuse : formulation d'hypothèses, recueil d'informations (données, enquêtes), puis analyse objective des résultats."},
+
+{c:"Ch.1 — Sociologie spontanée", q:"Que montre l'exemple « Femmes au volant, mort au tournant » face aux vraies statistiques de mortalité routière ?", opts:[
+  "Que les statistiques confirment le stéréotype",
+  "Que la sociologie spontanée, intuitive et hâtive, peut être contredite par les données : 75 % des tués sur la route sont des hommes, 25 % des femmes",
+  "Que les femmes sont responsables de 75 % des accidents mortels",
+  "Que la sociologie spontanée est toujours plus fiable que les enquêtes"
+], correct:1, exp:"Contrairement au stéréotype de la sociologie spontanée, les statistiques réelles montrent 75 % d'hommes tués sur la route contre 25 % de femmes — illustrant le danger des généralisations hâtives et subjectives."},
+
+{c:"Ch.1 — Sociologie/Anthropologie", q:"Quelle est la différence méthodologique principale entre sociologie et anthropologie culturelle, pour un même objet d'étude (ex : les SDF) ?", opts:[
+  "La sociologie étudie via des enquêtes, l'anthropologie culturelle via l'observation participante ou non",
+  "La sociologie n'étudie que les sociétés riches, l'anthropologie que les sociétés pauvres",
+  "Il n'existe aucune différence entre les deux disciplines",
+  "L'anthropologie utilise uniquement des statistiques, la sociologie uniquement l'observation"
+], correct:0, exp:"La sociologie étudie les sociétés via des enquêtes, tandis que l'anthropologie culturelle privilégie l'observation participante ou non — deux méthodes différentes pouvant porter sur le même objet (ex : les SDF)."},
+
+{c:"Ch.2 — Culture", q:"Que regroupe le concept de culture selon le cours ?", opts:[
+  "Uniquement les croyances religieuses",
+  "Croyances, valeurs, normes sociales et pratiques (rites, traditions, coutumes, comportements)",
+  "Uniquement la langue et la nourriture",
+  "Le patrimoine artistique d'un pays"
+], correct:1, exp:"La culture est l'ensemble des éléments partagés par les membres d'une société : croyances, valeurs (principes/idéaux collectifs), normes sociales, et pratiques (rites, traditions, coutumes, comportements)."},
+
+{c:"Ch.2 — Besoins/comportements", q:"Quelle est la différence entre besoins et comportements dans une perspective culturelle ?", opts:[
+  "Les besoins sont culturels (acquis), les comportements sont naturels (innés)",
+  "Les besoins sont naturels (innés), les comportements sont culturels (acquis, intériorisés par la socialisation)",
+  "Les deux sont strictement innés",
+  "Les deux sont strictement acquis, sans dimension biologique"
+], correct:1, exp:"Les besoins (manger, dormir...) sont naturels et innés, tandis que les comportements qui y répondent (comment manger, où dormir...) sont culturels, acquis et intériorisés via la socialisation."},
+
+{c:"Ch.2 — E. Hall", q:"Selon E. Hall, que distingue le temps monochrone du temps polychrone ?", opts:[
+  "Le monochrone (Europe Nord/Ouest, USA, Japon) valorise la ponctualité ; le polychrone (Afrique, Amérique latine, Méditerranée) valorise la convivialité",
+  "Le monochrone concerne uniquement l'Asie",
+  "Le polychrone signifie qu'on ne fait jamais qu'une seule tâche à la fois",
+  "Ces notions ne concernent pas la culture mais la biologie"
+], correct:0, exp:"Le temps monochrone (Europe du Nord/Ouest, États-Unis, Japon) privilégie la ponctualité ; le temps polychrone (Afrique, Amérique latine, pourtour méditerranéen) privilégie la convivialité."},
+
+{c:"Ch.2 — Communication", q:"Dans la communication interpersonnelle, quelle est la part approximative du code verbal (les mots) ?", opts:[
+  "70 %",
+  "50 %",
+  "30 %",
+  "10 %"
+], correct:2, exp:"Le code verbal (les mots) ne représente qu'environ 30 % de la communication ; le para-langage et le code non-verbal comptent chacun pour une composante de 70 %."},
+
+{c:"Ch.2 — Ethnocentrisme", q:"Quelle est la différence entre ethnocentrisme culturel et relativisme culturel ?", opts:[
+  "L'ethnocentrisme (« ma culture est la meilleure », à éviter) juge les autres cultures ; le relativisme (« chaque culture a sa richesse », à pratiquer) implique ouverture et absence de jugement",
+  "Ce sont deux synonymes",
+  "Le relativisme culturel signifie qu'il faut adopter la culture dominante",
+  "L'ethnocentrisme est une attitude à toujours privilégier dans les soins"
+], correct:0, exp:"L'ethnocentrisme culturel (« ma culture est la meilleure ») est à éviter absolument car il porte des jugements sur les autres cultures. Le relativisme culturel (« chaque culture a sa richesse ») est à pratiquer au quotidien."},
+
+{c:"Ch.3 — Représentations de la maladie", q:"Dans le modèle occidental actuel, à quoi la maladie est-elle principalement attribuée ?", opts:[
+  "À une punition divine",
+  "Au mauvais œil ou à la sorcellerie",
+  "À un environnement et/ou un mode de vie malsain (pollution, stress, tabac, malbouffe, alcool, sédentarité)",
+  "Uniquement à l'hérédité génétique"
+], correct:2, exp:"Le modèle occidental actuel attribue la maladie à l'environnement et au mode de vie : pollution, stress, tabagisme, malbouffe, alcool, sédentarité. Les 2 principales causes de mortalité sont les cancers et les maladies cardio-vasculaires (~¼ des décès chacune)."},
+
+{c:"Ch.3 — Conception magico-religieuse", q:"Le « mauvais œil », présent dans plusieurs cultures, est attribué à quoi et répond à quelle question ?", opts:[
+  "À un virus contagieux ; répond à la question du traitement",
+  "À un individu jaloux ou en colère (conscient ou inconscient) ; répond à la question « pourquoi moi, maintenant ? » sans nier les causes médicales",
+  "À une malformation génétique héréditaire uniquement",
+  "Cette croyance n'existe dans aucune culture actuelle"
+], correct:1, exp:"Le mauvais œil est attribué à un individu jaloux ou en colère. Ces croyances répondent à la question « pourquoi moi, maintenant ? » — elles ne nient pas les causes médicales, elles les complètent."},
+
+{c:"Ch.3 — Représentations du corps", q:"Concernant le corps idéal, quelle opposition culturelle est décrite dans le cours ?", opts:[
+  "Minceur (Europe actuelle) vs rondeurs = beauté, richesse, bonne santé (nombreuses régions d'Afrique subsaharienne)",
+  "Minceur partout dans le monde sans exception",
+  "Rondeur uniquement valorisée en Europe",
+  "Aucune variation culturelle du corps idéal n'est mentionnée"
+], correct:0, exp:"En Europe actuelle, la minceur est valorisée comme corps idéal, alors que dans de nombreuses régions d'Afrique subsaharienne les rondeurs symbolisent beauté, richesse et bonne santé (avec des pratiques comme le gavage en Mauritanie)."},
+
+{c:"Ch.3 — Expression de la douleur", q:"Quels sont les 3 profils décrits pour l'expression de la douleur physique ?", opts:[
+  "Contrôle (Europe O/N/E), Stoïcisme (Asie), Syndrome méditerranéen (pourtour méditerranéen + Afrique sub.)",
+  "Silence total partout dans le monde",
+  "Cris uniquement en Europe, silence uniquement en Afrique",
+  "Il n'existe qu'un seul profil universel"
+], correct:0, exp:"Trois profils : Contrôle (Europe O/N/E — expression discrète, stoïcisme), Stoïcisme (Asie — le « bon » malade n'exprime pas la douleur), Syndrome méditerranéen (pourtour méditerranéen + Afrique sub. — réactions fortes, pleurs, cris)."},
+
+{c:"Ch.3 — Douleur psychique", q:"En Asie, comment est perçue l'expression de la douleur psychique, selon le cours ?", opts:[
+  "Elle est très valorisée et encouragée publiquement",
+  "Elle est très réservée, avec l'expression « dépression = maladie du blanc »",
+  "Elle n'existe pas en tant que concept",
+  "Elle est exprimée exactement comme en Europe"
+], correct:1, exp:"En Asie, l'expression de la douleur psychique est très réservée, dans une logique de contrôle des émotions et de ne pas perdre la face, illustrée par l'expression « dépression = maladie du blanc »."},
+
+{c:"Ch.3 — Facteurs de guérison", q:"Comment le rôle de la famille dans la guérison diffère-t-il entre sociétés individualistes et communautaires ?", opts:[
+  "Il est identique partout",
+  "Discret en Europe de l'Ouest (sociétés individualistes) vs très présent, en grand nombre et longue durée (sociétés communautaires : Europe du Sud, monde musulman, Afrique sub., communautés gitanes)",
+  "La famille n'intervient jamais dans le processus de guérison",
+  "Seules les sociétés communautaires impliquent la famille"
+], correct:1, exp:"En Europe de l'Ouest (société individualiste), le rôle de la famille est plus discret ; dans les sociétés communautaires (Europe du Sud, monde musulman, Afrique subsaharienne, communautés gitanes), la présence familiale est beaucoup plus importante et prolongée."},
+
+{c:"Ch.4 — Stratification sociale", q:"Quels indicateurs définissent la position sociale, selon les sociétés ?", opts:[
+  "Uniquement l'âge, partout dans le monde",
+  "Europe : statut professionnel (revenus + études) ; États-Unis : niveau de revenus ; Afrique rurale traditionnelle : critères économiques + âge (gérontocratie)",
+  "Uniquement la religion",
+  "La position sociale est identique dans toutes les sociétés"
+], correct:1, exp:"Les indicateurs varient : en Europe, le statut professionnel (revenus + études) ; aux États-Unis, principalement le niveau de revenus ; en Afrique rurale traditionnelle, les critères économiques combinés à l'âge (gérontocratie)."},
+
+{c:"Ch.4 — Société duale", q:"Dans la société duale, qui sont les « exclus » ?", opts:[
+  "La classe supérieure et moyenne",
+  "SDF, bénéficiaires du RIS, chômeurs de longue durée, certaines personnes âgées, certains travailleurs pauvres — en dessous du seuil de pauvreté",
+  "Tous les travailleurs salariés",
+  "Uniquement les personnes sans emploi temporaire"
+], correct:1, exp:"Les « exclus » sont les personnes en dessous du seuil de pauvreté : SDF, bénéficiaires du RIS, chômeurs de longue durée, certaines personnes âgées, certains travailleurs pauvres. Les « inclus » regroupent les classes supérieure, moyenne et populaire supérieure."},
+
+{c:"Ch.4 — Pauvreté", q:"Quelle est la différence entre pauvreté absolue et pauvreté relative ?", opts:[
+  "La pauvreté absolue = non-satisfaction des besoins physiologiques (logement, alimentation, hygiène) ; la pauvreté relative = non-satisfaction des besoins sociaux pour un mode de vie « normal »",
+  "Ce sont deux termes identiques",
+  "La pauvreté relative concerne uniquement les pays pauvres",
+  "La pauvreté absolue ne concerne que les personnes âgées"
+], correct:0, exp:"La pauvreté absolue touche les besoins physiologiques de base (logement, alimentation, hygiène). La pauvreté relative touche les besoins « sociaux » nécessaires à un mode de vie normal, entraînant des restrictions dans plusieurs domaines."},
+
+{c:"Ch.4 — Causes de la pauvreté", q:"Quelle est la différence entre pauvreté situationnelle et pauvreté transgénérationnelle ?", opts:[
+  "La situationnelle (nouvelle pauvreté) résulte de facteurs comme revenus faibles, chômage, coût de la vie, séparation ; la transgénérationnelle est héritée de génération en génération",
+  "Ce sont deux synonymes exacts",
+  "La transgénérationnelle ne concerne que les riches",
+  "La situationnelle est toujours permanente et irréversible"
+], correct:0, exp:"La pauvreté situationnelle (nouvelle pauvreté) découle de facteurs conjoncturels (revenus faibles, absence d'emploi, inflation, surendettement, séparations, décès du conjoint, problèmes de santé). La pauvreté transgénérationnelle se transmet de génération en génération."},
+
+{c:"Ch.4 — Racisme de classe", q:"Que signifie le « racisme de classe » évoqué dans le cours ?", opts:[
+  "Un ethnocentrisme culturel appliqué aux classes sociales : « ma culture de classe est la meilleure »",
+  "Une discrimination raciale au sens strict, sans lien avec la classe sociale",
+  "Un phénomène qui n'existe pas dans le milieu des soins",
+  "Le fait de favoriser systématiquement les classes populaires"
+], correct:0, exp:"Le « racisme de classe » est un ethnocentrisme culturel appliqué aux classes sociales (« ma culture de classe est la meilleure »). Les préjugés sociaux nuisent à la qualité de la relation soignant-soigné : le relativisme culturel doit s'appliquer à toutes les classes."},
+
+{c:"Ch.5 — Inégalités devant la maladie", q:"En général, comment évolue la fréquence des maladies selon la hiérarchie sociale, et quelle est l'exception notable ?", opts:[
+  "Les maladies sont plus fréquentes en descendant dans la hiérarchie sociale, sauf les allergies, plus fréquentes en montant",
+  "Les maladies sont réparties de façon strictement égale quelle que soit la classe sociale",
+  "Les maladies sont plus fréquentes uniquement dans les classes supérieures",
+  "Il n'existe aucune exception à la règle générale"
+], correct:0, exp:"Plus on descend dans la hiérarchie sociale, plus les maladies (cardio-vasculaires, certains cancers, respiratoires, digestives, troubles anxieux/dépressifs) sont fréquentes — sauf les allergies, plus fréquentes en montant dans la hiérarchie."},
+
+{c:"Ch.5 — Facteurs cumulatifs", q:"Parmi les facteurs cumulatifs expliquant les inégalités sociales de santé, lequel concerne les « ressources culturelles » ?", opts:[
+  "L'exposition aux substances cancérigènes au travail",
+  "Des connaissances en santé, prévention, dépistage et suivi moindres",
+  "Le tabagisme et la sédentarité",
+  "L'isolement social et le stress"
+], correct:1, exp:"Les ressources culturelles moindres se traduisent par des connaissances en santé, une prévention, un dépistage et un suivi médical réduits — un facteur distinct des ressources économiques, des conditions de travail, des habitudes de vie ou de l'environnement psycho-social."},
+
+{c:"Ch.5 — Espérance de vie", q:"Quel est l'écart d'espérance de vie observé en Belgique entre les SDF et les professions supérieures ?", opts:[
+  "Environ 5 ans",
+  "Environ 15 ans",
+  "Plus de 35 ans (SDF : 45-50 ans / professions supérieures : 83-85 ans)",
+  "Aucun écart significatif"
+], correct:2, exp:"Les SDF ont une espérance de vie de 45 à 50 ans, contre 83 à 85 ans pour les professions supérieures — un écart de plus de 35 ans, illustrant fortement les inégalités sociales devant la santé."},
+
+{c:"Ch.5 — Accès aux soins", q:"Qu'est-ce que le statut BIM, et quelle proportion de la population wallonne en bénéficie environ ?", opts:[
+  "Bénéficiaire de l'Intervention Majorée : remboursements plus importants et tiers-payant systématique, pour environ 25 % de la population en Wallonie",
+  "Un statut réservé uniquement aux personnes sans papiers",
+  "Une taxe supplémentaire sur les soins de santé",
+  "Un statut concernant 90 % de la population"
+], correct:0, exp:"Le statut BIM (Bénéficiaire de l'Intervention Majorée) donne accès à des remboursements plus importants et au tiers-payant systématique ; il concerne environ 25 % de la population en Wallonie."},
+
+{c:"Ch.5 — Obstacles socio-culturels", q:"Quel est le taux d'analphabétisme estimé en Wallonie, cité comme obstacle culturel à l'accès aux soins ?", opts:[
+  "1-2 %",
+  "10-15 %",
+  "40-50 %",
+  "Plus de 70 %"
+], correct:1, exp:"L'analphabétisme touche environ 10 à 15 % de la population en Wallonie, rendant incompréhensibles brochures, notices de médicaments et affiches — un obstacle culturel majeur à l'accès aux soins."},
+
+{c:"Ch.6 — Vieillissement", q:"Quelle est la proportion de personnes de 65 ans et + en Belgique en 2025, et l'estimation pour 2050 ?", opts:[
+  "2025 : 10 % ; 2050 : 15 %",
+  "2025 : 20,3 % ; 2050 : 25 %",
+  "2025 : 30 % ; 2050 : 40 %",
+  "2025 : 5 % ; 2050 : 10 %"
+], correct:1, exp:"En 2025, les 65 ans et + représentent 20,3 % de la population belge ; cette proportion est estimée à 25 % en 2050 (les 80 ans et + passant de 5,6 % à environ 10 %)."},
+
+{c:"Ch.6 — Causes du vieillissement", q:"Le vieillissement de la population résulte de deux phénomènes combinés : lesquels ?", opts:[
+  "Augmentation de l'espérance de vie (vieillissement par le sommet) et diminution du taux de fécondité (vieillissement par la base)",
+  "Uniquement une baisse de la mortalité infantile",
+  "Uniquement l'immigration de personnes âgées",
+  "Une augmentation du taux de natalité"
+], correct:0, exp:"Le vieillissement résulte de l'augmentation de l'espérance de vie (vieillissement « par le sommet ») et de la diminution du taux de fécondité (vieillissement « par la base »), avec la Belgique à 1,44 enfant/femme en 2024, bien en dessous du seuil de renouvellement (2,05-2,1)."},
+
+{c:"Ch.6 — Inégalités sexuelles", q:"Parmi les explications SOCIOLOGIQUES (et non physiologiques) de la différence d'espérance de vie entre hommes et femmes, laquelle est correcte ?", opts:[
+  "Les femmes ont un système immunitaire plus performant",
+  "Les femmes accordent davantage d'importance à la santé, fument et boivent moins, et consultent/se font davantage suivre médicalement",
+  "Les hommes vivent plus longtemps en moyenne",
+  "Il n'existe aucune différence de comportements entre hommes et femmes"
+], correct:1, exp:"Les explications sociologiques incluent : importance accordée à la santé plus grande chez les femmes, tabac et alcool moindres, prévention et suivi médical plus fréquents, conditions de travail souvent meilleures, moins d'accidents de la route et de suicides aboutis. Le système immunitaire plus performant est une explication physiologique, pas sociologique."},
+
+{c:"Ch.6 — 3e et 4e âge", q:"Quelle est la différence entre les représentations sociales du 3e âge et du 4e âge dans notre société ?", opts:[
+  "Le 3e âge (retraite à ~80 ans) est valorisé (retraité actif, utile) ; le 4e âge (à partir de ~80 ans) est dévalorisé (dépendance, inutilité sociale, âgisme)",
+  "Les deux âges sont valorisés de façon identique",
+  "Le 4e âge est plus valorisé que le 3e âge",
+  "Ces notions ne s'appliquent qu'en Afrique rurale traditionnelle"
+], correct:0, exp:"Le 3e âge (retraite jusqu'à ~80 ans) est valorisé : image du retraité actif et utile. Le 4e âge (à partir de ~80 ans) est dévalorisé : absence de rôles sociaux, sentiment d'inutilité, « âgisme », menant à une « mise à mort symbolique des vieux »."},
+
+{c:"Ch.6 — Problèmes tabous du 4e âge", q:"Quelle est la forme de maltraitance des personnes âgées la plus fréquente selon le cours ?", opts:[
+  "La maltraitance physique",
+  "Les négligences passives (réification : ne pas dire bonjour, soins sans communication, manque de soins)",
+  "La maltraitance financière",
+  "L'enfermement et le ligotage"
+], correct:1, exp:"Les négligences passives (+++ dans le cours), comme la réification (ne pas dire bonjour, réaliser les soins sans communication, manque de soins), constituent la forme de maltraitance la plus fréquente, devant les maltraitances psychologique, médicale, financière, physique et les négligences actives."}
+];
+
+let order = QUESTIONS.map((_,i)=>i);
+let idx = 0;
+let score = 0;
+let missed = [];      // indices missed during first pass
+let reviewQueue = [];
+let mode = "quiz";     // quiz | review | done
+let answered = false;
+let selected = null;
+
+const root = document.getElementById('root');
+
+function currentQ(){
+  if(mode==="quiz") return QUESTIONS[order[idx]];
+  if(mode==="review") return QUESTIONS[reviewQueue[idx]];
+  return null;
+}
+function currentGlobalIndex(){
+  return mode==="quiz" ? order[idx] : reviewQueue[idx];
+}
+
+function render(){
+  if(mode==="done"){ renderEnd(); return; }
+  const q = currentQ();
+  const total = mode==="quiz" ? order.length : reviewQueue.length;
+  const pct = Math.round((idx)/total*100);
+  const letters = ['A','B','C','D'];
+
+  let html = '';
+  if(mode==="review"){
+    html += `<div class="review-banner">🔁 Reprise des questions ratées — répondez correctement pour les valider.</div>`;
+  }
+  html += `<div class="progress-row">
+      <span class="progress-label">${mode==="review"?"Révision":"Question"} ${idx+1}/${total}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  html += `<div class="card">
+      <div class="chapter">${q.c}</div>
+      <div class="question">${q.q}</div>
+      <div class="options">`;
+  q.opts.forEach((opt,i)=>{
+    let cls = "opt";
+    if(answered){
+      if(i===q.correct) cls += " correct";
+      else if(i===selected) cls += " wrong";
+      else cls += " dim";
+    }
+    html += `<button class="${cls}" data-i="${i}" ${answered?"disabled":""} onclick="handleAnswer(${i})">
+        <span class="letter">${letters[i]}</span><span>${opt}</span>
+      </button>`;
+  });
+  html += `</div>`;
+  if(answered){
+    const isCorrect = selected===q.correct;
+    html += `<div class="feedback ${isCorrect?'ok':'bad'}">
+        <div class="fb-head">${isCorrect?'Correct':'Pas tout à fait'}</div>
+        ${q.exp}
+      </div>`;
+  }
+  html += `</div>`;
+  if(answered){
+    html += `<div class="nav-row"><button class="next" onclick="nextQuestion()">Suivant →</button></div>`;
+  }
+  root.innerHTML = html;
+}
+
+function handleAnswer(i){
+  if(answered) return;
+  answered = true;
+  selected = i;
+  const q = currentQ();
+  const gIdx = currentGlobalIndex();
+  if(mode==="quiz"){
+    if(i===q.correct){ score++; }
+    else { if(!missed.includes(gIdx)) missed.push(gIdx); }
+  } else if(mode==="review"){
+    if(i!==q.correct){
+      reviewQueue.push(gIdx); // requeue at the end for another try
+    }
+  }
+  render();
+}
+
+function nextQuestion(){
+  answered = false;
+  selected = null;
+  idx++;
+  if(mode==="quiz"){
+    if(idx >= order.length){
+      if(missed.length>0){
+        mode = "review";
+        reviewQueue = missed.slice();
+        missed = [];
+        idx = 0;
+      } else {
+        mode = "done";
+      }
+    }
+  } else if(mode==="review"){
+    if(idx >= reviewQueue.length){
+      mode = "done";
+    }
+  }
+  render();
+}
+
+function renderEnd(){
+  const pct = Math.round(score/QUESTIONS.length*100);
+  root.innerHTML = `
+    <div class="card end-card">
+      <div class="chapter">Résultat</div>
+      <div class="end-score">${score}<span>/${QUESTIONS.length}</span></div>
+      <div class="end-msg">
+        ${pct===100 ? "Score parfait dès le premier passage — la synthèse est bien intégrée." 
+          : "Vous avez terminé le QCM. Toutes les questions ratées ont été reposées jusqu'à réponse correcte, avec leur explication."}
+      </div>
+      <button class="restart" onclick="restart()">Recommencer le QCM</button>
+    </div>`;
+}
+
+function restart(){
+  order = QUESTIONS.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  idx=0; score=0; missed=[]; reviewQueue=[]; mode="quiz"; answered=false; selected=null;
+  render();
+}
+
+restart();
+</script>
+</body>
+</html>

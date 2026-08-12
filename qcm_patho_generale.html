@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>QCM — Physiologie &amp; Pathologie générale</title>
+<style>
+  :root{
+    --ink:#2b2e2c;
+    --paper:#f6f3ec;
+    --panel:#ffffff;
+    --sage:#5c7d6a;
+    --sage-dark:#3e5b4c;
+    --clay:#c96f4a;
+    --clay-soft:#f1d9cd;
+    --ok:#4a7c59;
+    --ok-bg:#e3efe4;
+    --bad:#b4483a;
+    --bad-bg:#f6e2dd;
+    --line:#d9d3c4;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  .app{width:100%;max-width:680px;}
+
+  header.top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+    margin-bottom:22px;
+  }
+  header.top .mark{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--sage-dark);
+  }
+  header.top h1{
+    font-size:20px;
+    margin:2px 0 0;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:26px;
+    font-family:'Courier New',monospace;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background:var(--line);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--sage);
+    transition:width .35s ease;
+  }
+  .progress-label{
+    font-size:12px;
+    color:var(--sage-dark);
+    white-space:nowrap;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 26px;
+    box-shadow:0 1px 0 var(--line);
+  }
+  .chapter{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--sage-dark);
+    margin-bottom:10px;
+  }
+  .question{
+    font-size:19px;
+    line-height:1.45;
+    margin:0 0 22px;
+    font-weight:600;
+  }
+
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    text-align:left;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    border-radius:8px;
+    padding:13px 16px;
+    font-family:inherit;
+    font-size:15.5px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    line-height:1.4;
+    transition:border-color .15s, background .15s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--sage);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{
+    font-family:'Courier New',monospace;
+    font-weight:700;
+    color:var(--sage-dark);
+    flex-shrink:0;
+  }
+  .opt.correct{background:var(--ok-bg);border-color:var(--ok);}
+  .opt.correct .letter{color:var(--ok);}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);}
+  .opt.wrong .letter{color:var(--bad);}
+  .opt.dim{opacity:.55;}
+
+  .feedback{
+    margin-top:20px;
+    padding:16px 18px;
+    border-radius:8px;
+    font-size:15px;
+    line-height:1.55;
+  }
+  .feedback.ok{background:var(--ok-bg);border-left:4px solid var(--ok);}
+  .feedback.bad{background:var(--bad-bg);border-left:4px solid var(--bad);}
+  .feedback .fb-head{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:6px;
+    font-weight:700;
+  }
+  .feedback.ok .fb-head{color:var(--ok);}
+  .feedback.bad .fb-head{color:var(--bad);}
+
+  .nav-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:22px;
+  }
+  button.next{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:var(--sage-dark);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  button.next:hover{background:var(--sage);}
+
+  .end-card{text-align:center;padding:40px 26px;}
+  .end-score{
+    font-size:52px;
+    font-weight:700;
+    color:var(--sage-dark);
+    margin:6px 0;
+  }
+  .end-score span{font-size:22px;color:var(--ink);opacity:.6;}
+  .end-msg{font-size:16px;margin:14px 0 24px;line-height:1.5;}
+  .restart{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:none;
+    border:1.5px solid var(--sage-dark);
+    color:var(--sage-dark);
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  .restart:hover{background:var(--sage-dark);color:#fff;}
+
+  .review-banner{
+    background:var(--clay-soft);
+    border:1px solid var(--clay);
+    border-radius:8px;
+    padding:12px 16px;
+    font-size:14px;
+    margin-bottom:16px;
+    color:#7a3a24;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="mark">HEPL — Révision</div>
+      <h1>Physiologie &amp; Pathologie générale</h1>
+    </div>
+  </header>
+  <div id="root"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+{c:"Ch.1 — Milieu intérieur", q:"Comment se répartit l'eau totale de l'organisme entre les compartiments intracellulaire (LIC) et extracellulaire (LEC) ?", opts:[
+  "LIC = 1/3, LEC = 2/3",
+  "LIC = 2/3 de l'eau totale, LEC = 1/3 (dont 20 % plasma et 80 % liquide interstitiel)",
+  "LIC = 50 %, LEC = 50 % à parts égales",
+  "Tout se trouve dans le LEC, rien dans le LIC"
+], correct:1, exp:"Le LIC représente 2/3 de l'eau totale ; le LEC représente 1/3, lui-même réparti en 20 % pour le plasma et 80 % pour le liquide interstitiel."},
+
+{c:"Ch.1 — Pression osmotique", q:"Que se passe-t-il pour un globule rouge placé en milieu HYPERTONIQUE ?", opts:[
+  "L'eau entre dans le GR → hyperhydratation",
+  "L'eau sort du GR → déshydratation, car elle est attirée par le Na⁺ extracellulaire",
+  "Aucun mouvement d'eau ne se produit",
+  "Le GR se divise en deux"
+], correct:1, exp:"En milieu hypertonique, l'eau sort du globule rouge (déshydratation), attirée par la concentration élevée de Na⁺ (soluté osmotiquement actif) dans le milieu extracellulaire."},
+
+{c:"Ch.1 — Loi de Starling", q:"Selon la loi de Starling, que se passe-t-il du côté ARTÉRIEL du capillaire ?", opts:[
+  "La pression oncotique dépasse la pression hydrostatique → réabsorption",
+  "La pression hydrostatique dépasse la pression oncotique → filtration vers l'interstitiel (apport O₂/nutriments)",
+  "Aucun échange ne se produit côté artériel",
+  "Uniquement les protéines traversent la membrane"
+], correct:1, exp:"Côté artériel, la pression hydrostatique est supérieure à la pression oncotique : il y a filtration vers le secteur interstitiel, permettant l'apport d'O₂ et de nutriments. Côté veineux, c'est l'inverse (réabsorption)."},
+
+{c:"Ch.1 — DFG", q:"Quel est l'effet d'une hypovolémie sur le DFG, via la stimulation sympathique rénale ?", opts:[
+  "Vasodilatation artériolaire → ↑ DFG → ↑ natriurèse",
+  "Vasoconstriction artériolaire → ↓ DFG → ↓ natriurèse",
+  "Aucun effet sur le DFG",
+  "Le DFG double systématiquement"
+], correct:1, exp:"En cas d'hypovolémie, la stimulation sympathique rénale entraîne une vasoconstriction artériolaire, ce qui diminue le DFG et donc la natriurèse (rétention de sodium pour préserver le volume)."},
+
+{c:"Ch.1 — Œdème", q:"Quelle est la définition exacte de l'œdème selon le cours, et quelles en sont les causes principales ?", opts:[
+  "Augmentation du volume plasmatique uniquement, causée par une hyperhydratation intracellulaire",
+  "Augmentation du volume du liquide interstitiel uniquement, causée par ↑ pression hydrostatique, ↑ perméabilité vasculaire, ou hypoalbuminémie (↓ pression oncotique)",
+  "Diminution du volume interstitiel liée à la déshydratation",
+  "Un phénomène qui ne touche que le compartiment intracellulaire"
+], correct:1, exp:"L'œdème est une augmentation du volume du liquide interstitiel UNIQUEMENT, dû à une hausse de la pression hydrostatique, une hausse de la perméabilité vasculaire (inflammation), ou une hypoalbuminémie diminuant la pression oncotique."},
+
+{c:"Ch.2 — SRAA", q:"Quel est le rôle du Système Rénine-Angiotensine-Aldostérone (SRAA) ?", opts:[
+  "Il est activé par une hypervolémie et diminue la réabsorption de Na⁺",
+  "Il est activé par une baisse du volume/pression, et aboutit via l'aldostérone à une augmentation de la réabsorption de Na⁺ au tube collecteur",
+  "Il n'a aucun lien avec le sodium",
+  "Il agit uniquement sur le potassium"
+], correct:1, exp:"Le SRAA, le système le plus important de régulation sodée, est activé par une baisse du volume ou de la pression : rénine → angiotensine I → angiotensine II → aldostérone → augmentation de la réabsorption de Na⁺ au tube collecteur."},
+
+{c:"Ch.2 — Hyponatrémie", q:"Une hyponatrémie avec volume extracellulaire AUGMENTÉ (ex : insuffisance cardiaque, cirrhose) correspond à quel type ?", opts:[
+  "Hyponatrémie hypotonique (vraie)",
+  "Hyponatrémie euvolémique",
+  "Hyponatrémie hypervolémique (rétention d'eau > rétention de Na⁺)",
+  "Hyponatrémie isotonique (fausse)"
+], correct:2, exp:"L'hyponatrémie hypervolémique se caractérise par un volume extracellulaire augmenté, avec une rétention d'eau supérieure à la rétention de sodium — typique de l'insuffisance cardiaque, de la cirrhose ou de l'insuffisance rénale."},
+
+{c:"Ch.2 — Kaliémie", q:"Quel est le trouble électrolytique le plus fréquent selon le cours ?", opts:[
+  "L'hyperkaliémie",
+  "L'hypokaliémie",
+  "L'hypernatrémie",
+  "L'hyponatrémie isotonique"
+], correct:1, exp:"L'hypokaliémie (< 3,5 mmol/L) est décrite comme le trouble électrolytique le plus fréquent, avec des causes comme un apport insuffisant, des pertes digestives, ou les diurétiques de l'anse."},
+
+{c:"Ch.3 — Transport O₂", q:"Sous quelle forme la majorité de l'oxygène est-elle transportée dans le sang ?", opts:[
+  "Dissoute dans le plasma (loi de Henry) : 97 %",
+  "Liée à l'hémoglobine : 97 % (contre seulement 3 % sous forme dissoute)",
+  "Sous forme de bicarbonates",
+  "Liée exclusivement à l'albumine"
+], correct:1, exp:"97 % de l'O₂ transporté l'est lié à l'hémoglobine ; seulement 3 % (0,003 mL O₂/100 mL sang) est transporté sous forme dissoute — insuffisant à lui seul pour l'oxygénation."},
+
+{c:"Ch.3 — Courbe de dissociation Hb", q:"Que représente le P50 sur la courbe de dissociation de l'hémoglobine, et quelle est sa valeur de référence ?", opts:[
+  "La PO₂ à laquelle 100 % de l'Hb est saturée ; 100 mmHg",
+  "La PO₂ à laquelle 50 % de l'Hb est saturée ; 27 mmHg",
+  "La quantité totale d'Hb dans le sang ; 160 g/L",
+  "Le seuil de toxicité au CO"
+], correct:1, exp:"Le P50 est la PO₂ à laquelle 50 % de l'hémoglobine est saturée en O₂, avec une valeur de référence de 27 mmHg. Une acidose (effet Bohr) déplace la courbe vers la droite, facilitant la libération d'O₂ aux tissus."},
+
+{c:"Ch.3 — Transport CO₂", q:"Sous quelle forme la majorité du CO₂ est-elle transportée dans le sang ?", opts:[
+  "Dissous dans le plasma (5-10 %)",
+  "Sous forme de bicarbonates (~80 %), via l'équilibre CO₂ + H₂O ⇌ HCO₃⁻ + H⁺",
+  "Lié à l'hémoglobine sous forme de carbamino-Hb (~80 %)",
+  "Uniquement lié à l'albumine plasmatique"
+], correct:1, exp:"Environ 80 % du CO₂ est transporté sous forme de bicarbonates (CO₂ + H₂O ⇌ HCO₃⁻ + H⁺), contre 5-10 % dissous dans le plasma et environ 10 % sous forme de carbamino-hémoglobine dans les hématies."},
+
+{c:"Ch.3 — Effet Haldane", q:"Que décrit l'effet Haldane ?", opts:[
+  "L'hémoglobine réduite (après libération d'O₂ au niveau tissulaire) transporte plus facilement le CO₂ et tamponne mieux les H⁺",
+  "L'augmentation de H⁺ diminue l'affinité de l'Hb pour l'O₂",
+  "Le CO₂ n'a aucun effet sur le transport de l'O₂",
+  "L'oxyhémoglobine transporte mieux le CO₂ que l'hémoglobine réduite"
+], correct:0, exp:"L'effet Haldane décrit le fait que l'hémoglobine réduite (désoxygénée, au niveau tissulaire) transporte plus facilement le CO₂ et tamponne mieux les ions H⁺ — à distinguer de l'effet Bohr, qui concerne l'effet du pH sur l'affinité pour l'O₂."},
+
+{c:"Ch.4 — Érythropoïèse", q:"Comment est régulée la production des globules rouges en cas d'hypoxie tissulaire ?", opts:[
+  "L'hypoxie diminue la sécrétion d'EPO, réduisant la production de GR",
+  "L'hypoxie tissulaire (anémie, altitude, insuffisance respiratoire) augmente la sécrétion d'EPO (rein et foie) → augmente la production de GR → corrige l'hypoxie",
+  "L'EPO est produite uniquement par la moelle osseuse",
+  "L'hypoxie n'a aucun effet sur l'érythropoïèse"
+], correct:1, exp:"L'hypoxie tissulaire stimule la sécrétion d'érythropoïétine (EPO, produite par le rein et le foie), ce qui augmente la production de globules rouges dans la moelle osseuse et donc le transport d'O₂, corrigeant l'hypoxie."},
+
+{c:"Ch.4 — Groupes sanguins", q:"Dans le système ABO, quel groupe est le donneur universel et lequel est le receveur universel ?", opts:[
+  "Donneur universel = AB ; receveur universel = O",
+  "Donneur universel = O (aucun antigène) ; receveur universel = AB (aucune agglutinine)",
+  "Donneur et receveur universels sont tous deux le groupe A",
+  "Il n'existe pas de donneur ou receveur universel"
+], correct:1, exp:"Le groupe O, dépourvu d'antigènes A et B sur les GR, est le donneur universel. Le groupe AB, dépourvu d'agglutinines (anticorps) anti-A et anti-B dans le plasma, est le receveur universel."},
+
+{c:"Ch.4 — Bilirubine", q:"Quelle est la différence entre bilirubine libre (non conjuguée) et bilirubine conjuguée ?", opts:[
+  "La bilirubine libre est hydrosoluble et non toxique ; la conjuguée est liposoluble et neurotoxique",
+  "La bilirubine libre est liposoluble et NEUROTOXIQUE (formée dans la rate) ; la bilirubine conjuguée (formée dans le foie) est hydrosoluble et non neurotoxique",
+  "Les deux formes sont strictement identiques",
+  "La bilirubine conjuguée est formée exclusivement dans les intestins"
+], correct:1, exp:"La bilirubine libre (non conjuguée), formée dans la rate à partir de la dégradation de l'hème, est liposoluble et NEUROTOXIQUE. Après conjugaison à l'acide glucuronique dans le foie, la bilirubine conjuguée devient hydrosoluble et non neurotoxique."},
+
+{c:"Ch.5 — Équilibre acido-basique", q:"Quelle est la particularité du système tampon bicarbonate/acide carbonique malgré un pKa (6,1) éloigné du pH sanguin (7,4) ?", opts:[
+  "C'est un système fermé, donc inefficace en toutes circonstances",
+  "C'est un système OUVERT : l'excès d'acide est éliminé par la ventilation (CO₂), l'excès de base par le rein (HCO₃⁻)",
+  "Il n'intervient jamais dans la régulation du pH",
+  "Il n'agit que sur le potassium"
+], correct:1, exp:"Bien que son pKa (6,1) soit éloigné du pH physiologique, ce système reste très efficace car il est OUVERT : l'excès d'acide est éliminé via le CO₂ par la ventilation, et l'excès de base via les bicarbonates par le rein."},
+
+{c:"Ch.5 — Compensation", q:"En cas d'acidose métabolique, quel système de compensation intervient le plus rapidement ?", opts:[
+  "Le rein (24 à 48h)",
+  "La compensation respiratoire (rapide, quasi-instantanée, ↓ PCO₂)",
+  "Aucune compensation n'existe pour l'acidose métabolique",
+  "Le système osseux"
+], correct:1, exp:"La compensation respiratoire (diminution de la PCO₂ par hyperventilation) est quasi-instantanée en cas d'acidose métabolique, alors que la compensation rénale (régénération/excrétion des bicarbonates) prend 24 à 48 heures."},
+
+{c:"Ch.5 — Trou anionique", q:"Quelle est la valeur normale du trou anionique, et que signifie son augmentation ?", opts:[
+  "0 mEq/L ; son augmentation est sans signification clinique",
+  "≈ 12 mEq/L ; son augmentation traduit une accumulation d'acides non dosés (lactate, cétones, méthanol, insuffisance rénale chronique)",
+  "≈ 50 mEq/L ; il ne varie jamais",
+  "≈ 12 mEq/L ; sa diminution seule est dangereuse"
+], correct:1, exp:"Le trou anionique normal est d'environ 12 mEq/L (Na⁺ − [HCO₃⁻ + Cl⁻]). Son augmentation signale une accumulation d'acides non dosés comme le lactate, les corps cétoniques, le méthanol ou dans l'insuffisance rénale chronique."},
+
+{c:"Ch.6 — CMH", q:"Quelle est la différence principale entre le CMH de classe I et de classe II ?", opts:[
+  "Classe I est exprimé sur toutes les cellules nucléées et présente les peptides internes aux LT CD8 ; Classe II est exprimé sur les CPA et présente les peptides exogènes aux LT CD4",
+  "Classe I concerne uniquement les lymphocytes B",
+  "Classe II est exprimé sur toutes les cellules du corps sans exception",
+  "Il n'existe aucune différence fonctionnelle entre les deux classes"
+], correct:0, exp:"Le CMH de classe I, présent sur presque toutes les cellules nucléées, présente les peptides internes (viraux, mutés) aux LT CD8. Le CMH de classe II, présent sur les cellules présentatrices d'antigènes (CPA) et LT activés, présente les peptides exogènes (bactéries phagocytées) aux LT CD4."},
+
+{c:"Ch.6 — Inflammation", q:"Quels sont les 4 signes cliniques locaux classiques de l'inflammation ?", opts:[
+  "Rubor (rougeur), Calor (chaleur), Tumor (œdème), Dolor (douleur)",
+  "Fièvre, frissons, sueurs, tachycardie",
+  "Pâleur, froideur, atrophie, anesthésie",
+  "Cyanose, dyspnée, toux, expectoration"
+], correct:0, exp:"Les 4 signes cardinaux de l'inflammation locale sont Rubor (rougeur), Calor (chaleur), Tumor (œdème) et Dolor (douleur), auxquels s'ajoute la perte de fonction."},
+
+{c:"Ch.6 — Hypersensibilités", q:"Quel mécanisme caractérise l'hypersensibilité de Type I (immédiate, anaphylaxie) ?", opts:[
+  "Des complexes Ac-Ag circulants se déposent dans les tissus",
+  "Des IgE fixées sur les mastocytes libèrent de l'histamine et des leucotriènes lors d'un nouveau contact avec l'allergène",
+  "Des lymphocytes T CD4 activés recrutent des macrophages après 48-72h",
+  "Des IgG/IgM détruisent directement des cellules du soi via le complément"
+], correct:1, exp:"L'hypersensibilité de Type I implique des IgE fixées sur les mastocytes ; lors d'un nouveau contact avec l'allergène, elles déclenchent la libération d'histamine, de leucotriènes et de bradykinines (ex : rhinite allergique, asthme, anaphylaxie)."},
+
+{c:"Ch.7 — Hémostase", q:"Quelles sont les 4 étapes de l'hémostase, dans l'ordre ?", opts:[
+  "Fibrinolyse → coagulation → hémostase primaire → vasoconstriction",
+  "Vasoconstriction → hémostase primaire (thrombus blanc) → hémostase secondaire/coagulation (thrombus rouge) → fibrinolyse",
+  "Coagulation → vasoconstriction → fibrinolyse → hémostase primaire",
+  "Il n'existe que 2 étapes dans l'hémostase"
+], correct:1, exp:"L'hémostase se déroule en 4 étapes : 1) vasoconstriction réflexe, 2) hémostase primaire (adhésion/agrégation plaquettaire → thrombus blanc), 3) hémostase secondaire/coagulation (cascade → fibrine → thrombus rouge stable), 4) fibrinolyse (dissolution du caillot)."},
+
+{c:"Ch.7 — Coagulation", q:"Quelle est la différence entre la voie extrinsèque et la voie intrinsèque de la coagulation ?", opts:[
+  "La voie extrinsèque est déclenchée par le facteur tissulaire libéré par l'endothélium lésé (initiatrice) ; la voie intrinsèque est une phase de contact débutant par le facteur XII",
+  "Ce sont deux noms pour la même cascade",
+  "La voie intrinsèque est la voie initiatrice principale",
+  "La voie extrinsèque ne joue aucun rôle dans la coagulation"
+], correct:0, exp:"La voie extrinsèque (initiatrice principale) est déclenchée par le facteur tissulaire (FT) libéré par l'endothélium lésé, en association avec le facteur VIIa. La voie intrinsèque, une phase de contact, débute par l'activation du facteur XII."},
+
+{c:"Ch.7 — Anticoagulants", q:"Comment agit l'héparine comme anticoagulant ?", opts:[
+  "Elle bloque directement la COX-1",
+  "Elle potentialise l'antithrombine (×2000), qui inhibe la thrombine et les facteurs IX, X, XI, XII",
+  "Elle antagonise la vitamine K",
+  "Elle active directement la plasmine"
+], correct:1, exp:"L'héparine potentialise l'action de l'antithrombine environ ×2000, laquelle inhibe la thrombine ainsi que les facteurs IX, X, XI et XII — à distinguer des AVK, qui antagonisent la vitamine K, ou de l'aspirine, qui bloque la COX-1."},
+
+{c:"Ch.8 — Thermorégulation", q:"En dessous de quelle température centrale parle-t-on d'hypothermie SÉVÈRE, avec risque d'acidose et de fibrillation ventriculaire ?", opts:[
+  "< 35 °C",
+  "< 32 °C",
+  "< 28 °C",
+  "< 20 °C"
+], correct:2, exp:"L'hypothermie sévère (< 28 °C) s'accompagne d'acidose respiratoire et métabolique, avec un risque de fibrillation ventriculaire (FV) et de coma. L'hypothermie mineure est entre 32-35°C et modérée entre 28-32°C."},
+
+{c:"Ch.9 — Mort cellulaire", q:"Quelle est la différence majeure entre apoptose et nécrose concernant l'inflammation ?", opts:[
+  "L'apoptose (physiologique, programmée) ne déclenche PAS d'inflammation ; la nécrose (pathologique) déclenche une réaction inflammatoire majeure via la libération de DAMP",
+  "Les deux processus déclenchent systématiquement une inflammation identique",
+  "Seule l'apoptose déclenche une inflammation majeure",
+  "Ni l'apoptose ni la nécrose n'ont de lien avec l'inflammation"
+], correct:0, exp:"L'apoptose, mort cellulaire physiologique et programmée, ne libère pas de médiateurs et ne déclenche pas d'inflammation. La nécrose, pathologique, entraîne un gonflement cellulaire et la libération de DAMP, activant une réaction inflammatoire majeure."},
+
+{c:"Ch.9 — Adaptation cellulaire", q:"Quelle est la différence entre hyperplasie et hypertrophie ?", opts:[
+  "L'hyperplasie = augmentation du NOMBRE de cellules (ex : hyperplasie hépatique compensatrice) ; l'hypertrophie = augmentation de la TAILLE des cellules (ex : hypertrophie myocardique sur HTA)",
+  "Ce sont deux synonymes",
+  "L'hypertrophie concerne uniquement la diminution du nombre de cellules",
+  "L'hyperplasie ne concerne que le cœur"
+], correct:0, exp:"L'hyperplasie est une augmentation du nombre de cellules (ex : hyperplasie hépatique compensatrice, érythroblastique dans les anémies). L'hypertrophie est une augmentation de la taille des cellules (ex : hypertrophie myocardique liée à l'HTA, hypertrophie musculaire du sport)."},
+
+{c:"Ch.10 — Athérosclérose", q:"Quelle est la première étape de la physiopathologie de la plaque d'athérome ?", opts:[
+  "La calcification directe de la média artérielle",
+  "La pénétration passive et l'accumulation de LDL-cholestérol dans l'intima, suivie de leur oxydation",
+  "La rupture immédiate de l'endothélium sans cause préalable",
+  "La production excessive de globules rouges"
+], correct:1, exp:"La physiopathologie débute par la pénétration passive et l'accumulation de LDL-cholestérol dans l'intima artérielle, suivie de leur oxydation — ce qui déclenche ensuite l'adhésion des monocytes et la cascade inflammatoire menant à la plaque d'athérome."},
+
+{c:"Ch.12 — Cancer", q:"Quelle est la différence entre un oncogène et un gène suppresseur de tumeur ?", opts:[
+  "Un oncogène (ex : K-ras) est un gène muté dont la surexpression favorise la cancérogenèse ; un gène suppresseur (ex : P53) inhibe la division cellulaire et répare l'ADN — sa perte de fonction favorise la progression tumorale",
+  "Ce sont deux termes identiques",
+  "Les gènes suppresseurs favorisent toujours le cancer",
+  "Les oncogènes réparent l'ADN endommagé"
+], correct:0, exp:"Un oncogène (ex : K-ras dans le cancer du côlon) est un gène muté dont la surexpression favorise la cancérogenèse. Un gène suppresseur de tumeur (ex : P53, P16) inhibe la division cellulaire et répare l'ADN ; sa perte de fonction favorise la progression tumorale."},
+
+{c:"Ch.13 — Sénescence", q:"Que signifie l'affirmation du cours : « L'état de santé d'une personne âgée = Maladie + Vieillissement » ?", opts:[
+  "Que tout symptôme chez une personne âgée doit systématiquement être attribué à son âge",
+  "Qu'il ne faut PAS attribuer systématiquement l'état d'un patient âgé à son âge seul : il peut souffrir d'une maladie curable distincte du vieillissement normal",
+  "Que le vieillissement est toujours réversible avec un traitement",
+  "Que la maladie et le vieillissement sont exactement le même phénomène"
+], correct:1, exp:"Le cours insiste : vieillissement ≠ état de santé du patient âgé. Il ne faut pas attribuer systématiquement un mauvais état à l'âge seul — une maladie curable, distincte du vieillissement physiologique, peut en être la cause."}
+];
+
+let order = QUESTIONS.map((_,i)=>i);
+let idx = 0;
+let score = 0;
+let missed = [];      // indices missed during first pass
+let reviewQueue = [];
+let mode = "quiz";     // quiz | review | done
+let answered = false;
+let selected = null;
+
+const root = document.getElementById('root');
+
+function currentQ(){
+  if(mode==="quiz") return QUESTIONS[order[idx]];
+  if(mode==="review") return QUESTIONS[reviewQueue[idx]];
+  return null;
+}
+function currentGlobalIndex(){
+  return mode==="quiz" ? order[idx] : reviewQueue[idx];
+}
+
+function render(){
+  if(mode==="done"){ renderEnd(); return; }
+  const q = currentQ();
+  const total = mode==="quiz" ? order.length : reviewQueue.length;
+  const pct = Math.round((idx)/total*100);
+  const letters = ['A','B','C','D'];
+
+  let html = '';
+  if(mode==="review"){
+    html += `<div class="review-banner">🔁 Reprise des questions ratées — répondez correctement pour les valider.</div>`;
+  }
+  html += `<div class="progress-row">
+      <span class="progress-label">${mode==="review"?"Révision":"Question"} ${idx+1}/${total}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  html += `<div class="card">
+      <div class="chapter">${q.c}</div>
+      <div class="question">${q.q}</div>
+      <div class="options">`;
+  q.opts.forEach((opt,i)=>{
+    let cls = "opt";
+    if(answered){
+      if(i===q.correct) cls += " correct";
+      else if(i===selected) cls += " wrong";
+      else cls += " dim";
+    }
+    html += `<button class="${cls}" data-i="${i}" ${answered?"disabled":""} onclick="handleAnswer(${i})">
+        <span class="letter">${letters[i]}</span><span>${opt}</span>
+      </button>`;
+  });
+  html += `</div>`;
+  if(answered){
+    const isCorrect = selected===q.correct;
+    html += `<div class="feedback ${isCorrect?'ok':'bad'}">
+        <div class="fb-head">${isCorrect?'Correct':'Pas tout à fait'}</div>
+        ${q.exp}
+      </div>`;
+  }
+  html += `</div>`;
+  if(answered){
+    html += `<div class="nav-row"><button class="next" onclick="nextQuestion()">Suivant →</button></div>`;
+  }
+  root.innerHTML = html;
+}
+
+function handleAnswer(i){
+  if(answered) return;
+  answered = true;
+  selected = i;
+  const q = currentQ();
+  const gIdx = currentGlobalIndex();
+  if(mode==="quiz"){
+    if(i===q.correct){ score++; }
+    else { if(!missed.includes(gIdx)) missed.push(gIdx); }
+  } else if(mode==="review"){
+    if(i!==q.correct){
+      reviewQueue.push(gIdx); // requeue at the end for another try
+    }
+  }
+  render();
+}
+
+function nextQuestion(){
+  answered = false;
+  selected = null;
+  idx++;
+  if(mode==="quiz"){
+    if(idx >= order.length){
+      if(missed.length>0){
+        mode = "review";
+        reviewQueue = missed.slice();
+        missed = [];
+        idx = 0;
+      } else {
+        mode = "done";
+      }
+    }
+  } else if(mode==="review"){
+    if(idx >= reviewQueue.length){
+      mode = "done";
+    }
+  }
+  render();
+}
+
+function renderEnd(){
+  const pct = Math.round(score/QUESTIONS.length*100);
+  root.innerHTML = `
+    <div class="card end-card">
+      <div class="chapter">Résultat</div>
+      <div class="end-score">${score}<span>/${QUESTIONS.length}</span></div>
+      <div class="end-msg">
+        ${pct===100 ? "Score parfait dès le premier passage — la synthèse est bien intégrée." 
+          : "Vous avez terminé le QCM. Toutes les questions ratées ont été reposées jusqu'à réponse correcte, avec leur explication."}
+      </div>
+      <button class="restart" onclick="restart()">Recommencer le QCM</button>
+    </div>`;
+}
+
+function restart(){
+  order = QUESTIONS.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  idx=0; score=0; missed=[]; reviewQueue=[]; mode="quiz"; answered=false; selected=null;
+  render();
+}
+
+restart();
+</script>
+</body>
+</html>

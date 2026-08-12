@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>QCM — Histoire, Déontologie &amp; Éthique</title>
+<style>
+  :root{
+    --ink:#2b2e2c;
+    --paper:#f6f3ec;
+    --panel:#ffffff;
+    --sage:#5c7d6a;
+    --sage-dark:#3e5b4c;
+    --clay:#c96f4a;
+    --clay-soft:#f1d9cd;
+    --ok:#4a7c59;
+    --ok-bg:#e3efe4;
+    --bad:#b4483a;
+    --bad-bg:#f6e2dd;
+    --line:#d9d3c4;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  .app{width:100%;max-width:680px;}
+
+  header.top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+    margin-bottom:22px;
+  }
+  header.top .mark{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--sage-dark);
+  }
+  header.top h1{
+    font-size:20px;
+    margin:2px 0 0;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:26px;
+    font-family:'Courier New',monospace;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background:var(--line);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--sage);
+    transition:width .35s ease;
+  }
+  .progress-label{
+    font-size:12px;
+    color:var(--sage-dark);
+    white-space:nowrap;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 26px;
+    box-shadow:0 1px 0 var(--line);
+  }
+  .chapter{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--sage-dark);
+    margin-bottom:10px;
+  }
+  .question{
+    font-size:19px;
+    line-height:1.45;
+    margin:0 0 22px;
+    font-weight:600;
+  }
+
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    text-align:left;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    border-radius:8px;
+    padding:13px 16px;
+    font-family:inherit;
+    font-size:15.5px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    line-height:1.4;
+    transition:border-color .15s, background .15s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--sage);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{
+    font-family:'Courier New',monospace;
+    font-weight:700;
+    color:var(--sage-dark);
+    flex-shrink:0;
+  }
+  .opt.correct{background:var(--ok-bg);border-color:var(--ok);}
+  .opt.correct .letter{color:var(--ok);}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);}
+  .opt.wrong .letter{color:var(--bad);}
+  .opt.dim{opacity:.55;}
+
+  .feedback{
+    margin-top:20px;
+    padding:16px 18px;
+    border-radius:8px;
+    font-size:15px;
+    line-height:1.55;
+  }
+  .feedback.ok{background:var(--ok-bg);border-left:4px solid var(--ok);}
+  .feedback.bad{background:var(--bad-bg);border-left:4px solid var(--bad);}
+  .feedback .fb-head{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:6px;
+    font-weight:700;
+  }
+  .feedback.ok .fb-head{color:var(--ok);}
+  .feedback.bad .fb-head{color:var(--bad);}
+
+  .nav-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:22px;
+  }
+  button.next{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:var(--sage-dark);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  button.next:hover{background:var(--sage);}
+
+  .end-card{text-align:center;padding:40px 26px;}
+  .end-score{
+    font-size:52px;
+    font-weight:700;
+    color:var(--sage-dark);
+    margin:6px 0;
+  }
+  .end-score span{font-size:22px;color:var(--ink);opacity:.6;}
+  .end-msg{font-size:16px;margin:14px 0 24px;line-height:1.5;}
+  .restart{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:none;
+    border:1.5px solid var(--sage-dark);
+    color:var(--sage-dark);
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  .restart:hover{background:var(--sage-dark);color:#fff;}
+
+  .review-banner{
+    background:var(--clay-soft);
+    border:1px solid var(--clay);
+    border-radius:8px;
+    padding:12px 16px;
+    font-size:14px;
+    margin-bottom:16px;
+    color:#7a3a24;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="mark">IRSG / SF — Bloc 1 — Révision</div>
+      <h1>Histoire, Déontologie &amp; Éthique</h1>
+    </div>
+  </header>
+  <div id="root"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+
+{c:"Ch.1 — Morale vs Éthique", q:"Quelle affirmation distingue correctement la morale de l'éthique selon le cours ?", opts:[
+  "La morale répond à « Comment vivre ? » et l'éthique à « Que dois-je faire ? »",
+  "La morale est fondée sur l'impératif catégorique de Kant (devoirs, Bien/Mal) ; l'éthique est fondée sur l'impératif hypothétique (bon/mauvais, valeurs relatives)",
+  "Ce sont deux synonymes strictement interchangeables",
+  "L'éthique est inconditionnelle, la morale est conditionnelle"
+], correct:1, exp:"La morale, fondée sur l'impératif catégorique de Kant, oppose le Bien et le Mal de façon inconditionnelle (« Que dois-je faire ? »). L'éthique, fondée sur l'impératif hypothétique, distingue le bon du mauvais de façon relative et conditionnelle (« Comment vivre ? »)."},
+
+{c:"Ch.1 — Théories éthiques", q:"Quelle est la différence entre une théorie NON consécutive (déontologique) et une théorie CONSECUTIVE (téléologique) ?", opts:[
+  "La théorie non consécutive juge l'acte bon selon ses conséquences ; la consécutive selon sa conformité à la règle",
+  "La théorie non consécutive (déontologique) juge l'acte bon s'il est conforme à la règle morale ; la théorie consécutive (téléologique) juge l'acte bon s'il a des conséquences positives",
+  "Les deux théories ignorent totalement les règles morales",
+  "Il n'existe qu'une seule théorie reconnue en soins infirmiers"
+], correct:1, exp:"Théorie NON consécutive (déontologique) : l'acte est bon s'il respecte la règle morale, indépendamment des conséquences. Théorie CONSECUTIVE (téléologique) : l'acte est bon si ses conséquences sont positives pour la personne soignée — le mot-clé est CONSÉQUENCE."},
+
+{c:"Ch.1 — Limites de la réflexion éthique", q:"Que désigne « l'acharnement éthique » parmi les limites de la réflexion éthique ?", opts:[
+  "Le refus total de toute réflexion éthique",
+  "Le « trop bien faire » qui devient impossible et génère de la culpabilité",
+  "Une routine qui apporte confort sans jamais être remise en question",
+  "La pression du groupe qui pousse à taire son propre point de vue"
+], correct:1, exp:"L'acharnement éthique correspond au « trop bien faire » qui devient impossible à tenir et crée de la culpabilité — à distinguer de la routine (qui empêche la remise en question) et du conformisme (pression du groupe)."},
+
+{c:"Ch.1 — Étapes de la réflexion éthique", q:"Quelles sont, dans l'ordre, les 4 étapes de la réflexion éthique décrites dans le cours ?", opts:[
+  "Choisir une solution → analyser → accueillir les émotions → clarifier le problème",
+  "Clarifier le problème → accueillir les émotions et jugements spontanés → analyser à partir des 4 repères → choisir une solution en concertation",
+  "Analyser → juger → sanctionner → clôturer",
+  "Il n'existe qu'une seule étape : la concertation d'équipe"
+], correct:1, exp:"Les 4 étapes sont : A) clarifier le problème (informations, préjudices/bénéfices), B) accueillir les émotions et jugements spontanés, C) analyser la situation à partir des 4 repères (juridiques, déontologiques, chartes/déclarations, éthiques), D) choisir une solution en concertation pluridisciplinaire."},
+
+{c:"Ch.2 — Hiérarchie juridique", q:"Dans la hiérarchie des textes juridiques belges, quel est l'ordre correct, du plus haut au moins haut ?", opts:[
+  "Arrêtés Royaux → Constitution → Lois → Textes supranationaux",
+  "Textes supranationaux → Constitution → Textes législatifs (lois/décrets/ordonnances) → Textes exécutifs (AR/AM)",
+  "Décrets → Constitution → Textes supranationaux → Arrêtés Ministériels",
+  "Il n'existe aucune hiérarchie entre ces textes"
+], correct:1, exp:"Du plus haut au moins haut : textes supranationaux (ONU, UE...), Constitution, textes législatifs (lois fédérales, décrets communautaires, ordonnances régionales — même valeur hiérarchique), puis textes exécutifs (Arrêtés Royaux et Ministériels)."},
+
+{c:"Ch.2 — Serment d'Hippocrate", q:"Quelle est l'importance du Serment d'Hippocrate selon le cours ?", opts:[
+  "C'est un texte purement moderne, sans lien avec le secret professionnel",
+  "C'est le premier repère déontologique médical, base de la tradition du secret professionnel, avec un caractère universel",
+  "Il concerne exclusivement la profession infirmière",
+  "Il n'a jamais été traduit ni adapté par d'autres cultures"
+], correct:1, exp:"Le Serment d'Hippocrate (-460 à -377 av. J.-C.) est le premier repère déontologique médical et la base de la tradition du secret professionnel. Il énonce les devoirs du médecin (intérêt du malade, discrétion, secret) et a été traduit et adapté par de nombreuses cultures — caractère universel."},
+
+{c:"Ch.2 — Florence Nightingale", q:"Que retenir du rôle de Florence Nightingale pendant la guerre de Crimée (1854) ?", opts:[
+  "Elle a fait chuter la mortalité de 60 % à 22 % en moins d'un an grâce à l'organisation, à l'hôpital de Scutari (2500 blessés)",
+  "Elle a créé la première école d'infirmières à Bruxelles",
+  "Elle a rédigé le Code de déontologie médicale belge",
+  "Elle n'a eu aucun impact sur la mortalité hospitalière"
+], correct:0, exp:"À l'hôpital de Scutari pendant la guerre de Crimée (2500 blessés, hygiène déficiente), Florence Nightingale a fait baisser la mortalité de 60 % à 22 % en moins d'un an grâce à l'organisation. En 1860, elle crée la première école d'infirmières à Londres, élevant le nursing au rang de profession disciplinée."},
+
+{c:"Ch.2 — Code de déontologie infirmier belge", q:"Que faut-il savoir du Code de déontologie des praticiens de l'art infirmier belge ?", opts:[
+  "C'est un texte légal contraignant, publié en 1974 et jamais modifié depuis",
+  "C'est un code MORAL (non légal), publié en 2004 par l'UGIB, modifié en 2018, qui s'applique pendant ET en dehors des heures de travail",
+  "Il ne concerne que les infirmiers actifs en soins directs, pas la gestion ni la recherche",
+  "Il remplace totalement la loi du 20/12/1974"
+], correct:1, exp:"Le Code de déontologie infirmier belge est un code MORAL (non légal), publié en 2004 (30e anniversaire de la loi du 20/12/1974) par l'Union Générale des Infirmiers de Belgique (UGIB), modifié en 2018. Il s'applique pendant ET en dehors des heures de travail et peut servir de guide pour un jugement au tribunal."},
+
+{c:"Ch.2 — Code de déontologie, Art. 5", q:"Que prévoit l'article 5 du Code de déontologie infirmier belge ?", opts:[
+  "L'infirmier doit réaliser tous les soins demandés, quelle que soit sa compétence",
+  "L'infirmier doit refuser de réaliser les soins pour lesquels il ne se sait pas compétent, en avertir le demandeur et référer vers un professionnel compétent, sauf urgence où il donne l'aide adéquate possible",
+  "L'infirmier peut facturer librement sans informer le patient",
+  "L'infirmier n'a aucune obligation de compétence"
+], correct:1, exp:"L'article 5 impose à l'infirmier de refuser les soins pour lesquels il ne se sait pas compétent, d'en avertir le demandeur en motivant sa décision, et de référer vers une aide compétente — sauf en cas d'urgence, où il donne toute l'aide adéquate dans les limites de ses possibilités en attendant les secours."},
+
+{c:"Ch.2 — Principes éthiques", q:"Quelle définition correspond au principe de « non-malfaisance » ?", opts:[
+  "Distribuer équitablement les opportunités de soins",
+  "« Primum non nocere » — ne pas faire de mal (physique, psychologique, social, spirituel), avec un principe de proportionnalité",
+  "Décider à la place du patient « pour son bien »",
+  "Le droit au consentement et au refus éclairés"
+], correct:1, exp:"La non-malfaisance (« primum non nocere ») consiste à ne pas faire de mal, dans toutes ses dimensions (physique, psychologique, social, spirituel), selon un principe de proportionnalité. Elle se distingue de la bienfaisance (tendre vers le bien), du paternalisme (décider pour l'autre), de l'autonomie (consentement/refus) et de la justice (équité d'accès aux soins)."},
+
+{c:"Ch.2 — Chartes et déclarations", q:"Quelle est la différence entre une charte professionnelle et une déclaration ?", opts:[
+  "Une charte a force de loi contraignante ; une déclaration n'en a aucune",
+  "Une charte est un engagement moral non contraignant pouvant servir d'indice lors d'un jugement ; une déclaration est un texte solennel sans force de loi, à portée symbolique",
+  "Ce sont deux termes rigoureusement identiques",
+  "Seules les déclarations concernent les droits du patient"
+], correct:1, exp:"Une charte professionnelle est un engagement moral non contraignant, mais qui peut servir d'indice lors d'un jugement (ex : Charte européenne du malade usager de l'hôpital, 1979). Une déclaration est un texte solennel sans force de loi, à portée symbolique (ex : Déclaration Universelle des Droits de l'Homme, 1948)."},
+
+{c:"Ch.3 — Loi Aelvoet (2002)", q:"Quels sont les 4 critères des soins de qualité selon la loi relative aux droits du patient (loi Aelvoet, 2002) ?", opts:[
+  "Rapidité, gratuité, technicité, discrétion",
+  "Respect de l'autonomie, respect de la dignité, absence de discrimination, réponse aux besoins du patient",
+  "Uniquement le respect du secret professionnel",
+  "Compétence technique, ponctualité, disponibilité, sourire"
+], correct:1, exp:"Les 4 critères des soins de qualité sont : A) soins dans le respect de l'autonomie, B) soins dans le respect de la dignité, C) soins sans distinction d'aucune sorte, D) soins répondant aux besoins du patient (référence : pyramide de Maslow)."},
+
+{c:"Ch.3 — Autonomie", q:"Quelle est la distinction essentielle entre autonomie décisionnelle et autonomie fonctionnelle ?", opts:[
+  "Ce sont deux termes équivalents désignant l'indépendance physique",
+  "L'autonomie décisionnelle = choisir sa propre vie (libre arbitre) ; l'autonomie fonctionnelle = indépendance physique (faire par soi-même). Un patient peut être dépendant fonctionnellement mais autonome décisionnellement",
+  "Seule l'autonomie fonctionnelle existe en soins infirmiers",
+  "L'autonomie décisionnelle disparaît dès qu'il y a un handicap physique"
+], correct:1, exp:"⚠ Distinction essentielle du cours : AUTONOMIE ≠ DÉPENDANCE. L'autonomie décisionnelle (choisir sa vie, gérer ses propres décisions) est différente de l'autonomie fonctionnelle (indépendance physique, faire par soi-même). Un patient peut être fonctionnellement dépendant tout en restant décisionnellement autonome."},
+
+{c:"Ch.3 — Besoins et sexualité", q:"Que retenir concernant le besoin d'amour et la sexualité des patients selon le cours ?", opts:[
+  "Le désir s'arrête aux portes de l'hôpital ou de la maison de repos",
+  "Le besoin d'amour (affectivité, tendresse, sexualité) est un droit fondamental ; l'OMS (2000) affirme que tous les individus ont droit à une sexualité",
+  "La sexualité n'est jamais un sujet à aborder en soins infirmiers",
+  "Seuls les jeunes patients ont droit à l'affectivité"
+], correct:1, exp:"Le besoin d'amour est un droit fondamental (affectivité, tendresse, sexualité). L'OMS a affirmé en 2000 que tous les individus sur Terre ont droit à une sexualité, et le désir ne s'arrête pas aux portes de l'hôpital ou de la maison de repos. Le manque de considération pour ce besoin chez les aînés s'explique notamment par le manque de formation en sexologie et l'agisme."},
+
+{c:"Ch.4 — Position des familles", q:"Pourquoi faut-il rester vigilant face à l'implication de certaines familles, selon le cours ?", opts:[
+  "Parce que la volonté de la famille prime toujours sur celle du patient",
+  "Parce que certaines familles font preuve d'infantilisation et prennent un pouvoir abusif sur le patient (refus d'informer, choix imposé du médecin...) ; la volonté du PATIENT reste prioritaire",
+  "Parce que les familles ne doivent jamais être impliquées dans les soins",
+  "Parce que la loi interdit toute communication avec l'entourage"
+], correct:1, exp:"Certaines familles peuvent faire preuve d'infantilisation et exercer un pouvoir abusif sur le patient. Le cours rappelle que la volonté du PATIENT reste toujours prioritaire, même si les familles sont des alliées et partenaires indispensables dans la prise en charge."},
+
+{c:"Ch.5 — Article 458 du Code pénal", q:"Que prévoit l'article 458 du Code pénal concernant le secret professionnel ?", opts:[
+  "Il autorise la divulgation libre d'informations entre professionnels de santé",
+  "Il punit la révélation d'un secret confié par profession (hors exceptions légales) d'un emprisonnement de 8 jours à 6 mois et d'une amende",
+  "Il ne s'applique qu'aux médecins, jamais aux infirmiers",
+  "Il n'existe aucune sanction pénale pour la violation du secret professionnel"
+], correct:1, exp:"L'article 458 du Code pénal punit d'un emprisonnement de 8 jours à 6 mois et d'une amende les personnes dépositaires par état ou profession (médecins, infirmiers...) qui révèlent les secrets qu'on leur confie, hors exceptions légales. Le secret professionnel est à la fois un DEVOIR (obligation de se taire) et un DROIT (possibilité de se taire même si le patient y consent)."},
+
+{c:"Ch.5 — Les 3 caractères du secret", q:"Quels sont les 3 caractères du secret professionnel décrits dans le cours ?", opts:[
+  "Secret légal, secret administratif, secret partagé",
+  "Secret naturel (respect de l'autre), secret promis (loyauté), secret confié (volonté des deux parties)",
+  "Secret absolu, secret relatif, secret conditionnel",
+  "Il n'existe qu'un seul type de secret professionnel"
+], correct:1, exp:"Les 3 caractères sont : le secret naturel (obligation de taire ce qu'on apprend par hasard), le secret promis (fondé sur la loyauté, promesse de ne pas divulguer) et le secret confié (fondé sur la volonté des deux parties, sachant que l'autre se taira)."},
+
+{c:"Ch.5 — Confidents", q:"Quelle est la différence entre un confident nécessaire et un confident volontaire ?", opts:[
+  "Le confident nécessaire (médecin, infirmier) est consulté par nécessité et soumis au secret professionnel (Art. 458) ; le confident volontaire (aide familiale, ami, voisin) est soumis à un simple devoir de discrétion",
+  "Ce sont deux termes strictement identiques",
+  "Seul le confident volontaire est soumis à des sanctions pénales",
+  "Le confident nécessaire n'a aucune obligation légale"
+], correct:0, exp:"Le confident NÉCESSAIRE (médecin, infirmier...) est consulté par nécessité et directement soumis à l'article 458 du Code pénal. Le confident VOLONTAIRE (aide familiale, ami, voisin) n'est, à la différence, soumis qu'à un devoir de discrétion, non à l'article 458."},
+
+{c:"Ch.5 — Exceptions au secret", q:"Parmi les exceptions légales au secret professionnel (Art. 458), lesquelles sont correctes ?", opts:[
+  "Le témoignage en justice sur convocation du juge d'instruction, et les cas où la loi oblige (déclaration de naissance/décès, maladies transmissibles épidémiques, accidents du travail)",
+  "La simple demande d'un collègue curieux",
+  "La mort du patient, qui lève automatiquement le secret",
+  "L'autorisation du patient, qui lève systématiquement le secret"
+], correct:0, exp:"Les 2 types d'exceptions à l'article 458 sont : A) le témoignage en justice (convocation du juge d'instruction, le tribunal apprécie), B) les cas où la loi oblige (déclarations de naissance/décès, maladies transmissibles épidémiques, accidents du travail, art. 458bis). La mort du patient et l'autorisation du patient ne suffisent PAS, en principe, à lever le secret."},
+
+{c:"Ch.5 — Secret partagé", q:"Parmi les conditions strictes du secret partagé, laquelle est INEXACTE ?", opts:[
+  "L'interlocuteur doit lui-même être tenu au secret professionnel",
+  "Le simple fait que l'interlocuteur soit soumis au secret professionnel suffit à autoriser toute divulgation libre",
+  "Il faut l'intérêt indispensable de la personne protégée et un objectif commun entre les acteurs",
+  "Seules les informations nécessaires et pertinentes à la prise en charge peuvent être partagées"
+], correct:1, exp:"C'est une remarque importante du cours : le simple fait que l'interlocuteur soit lui-même tenu au secret professionnel n'empêche PAS la violation de ce dernier ! Ni la profession exercée, ni le lieu ne suffisent à permettre la révélation libre d'informations couvertes par le secret — les 6 conditions strictes doivent toutes être réunies."},
+
+{c:"Ch.5 — État de nécessité", q:"Selon l'arrêt de la Cour de Cassation du 13/05/1987, à quelle condition peut-on déroger au secret professionnel par état de nécessité ?", opts:[
+  "Dès que le patient le demande",
+  "Uniquement si un danger grave et imminent pour des tiers est établi de manière irréfutable, et qu'aucune autre solution n'existe pour sauvegarder un intérêt plus imérieux",
+  "Automatiquement après 10 ans d'ancienneté professionnelle",
+  "Jamais, l'état de nécessité n'existe pas en droit belge"
+], correct:1, exp:"L'état de nécessité permet de déroger au secret en cas de conflit d'obligations, à condition que : l'intérêt à sauvegarder soit plus impérieux que le secret, qu'il y ait un danger grave et imminent pour des tiers de manière irréfutable, qu'il soit impossible de protéger cet intérêt autrement, et que le législateur aurait lui-même tranché en faveur de la levée du secret."},
+
+{c:"Ch.5 — Article 458 bis", q:"Que permet l'article 458 bis du Code pénal, en vigueur depuis 2012 ?", opts:[
+  "D'informer librement la presse de toute situation de maltraitance",
+  "D'informer le Procureur du Roi en cas de danger grave et imminent pour l'intégrité physique/mentale d'un mineur ou d'une personne vulnérable, lorsque le soignant ne peut protéger seul cette intégrité",
+  "De lever systématiquement le secret pour tout patient mineur",
+  "De remplacer totalement l'article 458 du Code pénal"
+], correct:1, exp:"Depuis 2012, l'article 458 bis permet aux soignants d'informer le Procureur du Roi lorsqu'il existe un danger grave et imminent pour l'intégrité physique ou mentale d'un mineur ou d'une personne vulnérable, qu'ils ne peuvent protéger seuls ou avec l'aide de tiers — pour des infractions telles que viol, mutilations génitales, privation de soins, etc."},
+
+{c:"Ch.6 — L'Art de Guérir", q:"Quelles conditions légales sont requises pour pratiquer l'Art de Guérir (médical, dentaire, pharmaceutique) ?", opts:[
+  "Aucune condition, la pratique est libre",
+  "Détenir le diplôme légal, le faire viser, disposer de l'agrément si requis, et être inscrit à l'Ordre si applicable",
+  "Uniquement avoir suivi une formation continue de 8h/an",
+  "Être uniquement inscrit à l'Ordre des médecins"
+], correct:1, exp:"Pour pratiquer l'Art de Guérir, il faut détenir le diplôme légal, faire viser ce diplôme (Direction générale des Professions de la Santé), disposer de l'agrément si requis, et être inscrit à l'Ordre le cas échéant."},
+
+{c:"Ch.6 — Loi du 20/12/1974", q:"Quelle est l'importance de la loi du 20 décembre 1974 pour la profession infirmière ?", opts:[
+  "Elle instaure le premier diplôme d'infirmière en Belgique",
+  "Elle pose les bases du statut infirmier, délimite l'art infirmier, protège la profession en reconnaissant une autonomie d'action, et cerne les responsabilités inhérentes à la profession",
+  "Elle abolit la distinction entre actes B1, B2 et C",
+  "Elle concerne exclusivement les aides-soignants"
+], correct:1, exp:"La loi du 20/12/1974 est le texte fondateur du statut infirmier : elle pose les bases du statut, différencie les infirmiers des autres professionnels, délimite l'art infirmier et son domaine d'activité, protège la profession en reconnaissant une autonomie d'action, et cerne les responsabilités inhérentes à la profession."},
+
+{c:"Ch.6 — Actes B1, B2, C", q:"Comment distinguer les actes B1, B2 et C dans l'exercice de l'art infirmier ?", opts:[
+  "B1 = actes nécessitant toujours une prescription ; B2 = actes autonomes ; C = actes réservés aux médecins uniquement",
+  "B1 = prestations techniques SANS prescription médicale ; B2 = prestations techniques AVEC prescription médicale ; C = actes confiés par le médecin sous sa responsabilité, avec prescription",
+  "Il n'existe aucune distinction légale entre ces catégories d'actes",
+  "B1, B2 et C désignent uniquement des niveaux de diplôme"
+], correct:1, exp:"Actes B1 : prestations techniques infirmières ne nécessitant pas de prescription médicale (ex : aspiration des voies aériennes, sondage vésical unique). Actes B2 : prestations techniques nécessitant une prescription médicale (ex : sonde vésicale à demeure, préparation de perfusions IV). Actes C : actes confiés par le médecin sous sa propre responsabilité, avec prescription (ex : chimiothérapie, prélèvement par ponction artérielle)."},
+
+{c:"Ch.6 — Prescription orale par téléphone", q:"Dans quel cas une prescription orale par téléphone peut-elle être exécutée en l'absence du médecin, selon l'AR du 18/06/1990 ?", opts:[
+  "Dans tous les cas, sans restriction",
+  "Uniquement en cas d'urgence ; l'infirmier note dans le dossier et fait confirmer la prescription par écrit dès que possible",
+  "Jamais, la présence du médecin est toujours obligatoire",
+  "Uniquement si le patient le demande explicitement"
+], correct:1, exp:"L'article 7quater §4 précise qu'en cas d'urgence UNIQUEMENT, une prescription formulée oralement (téléphone, radiophonie, webcam) peut être exécutée en l'absence du médecin. Le médecin doit ensuite confirmer la prescription par écrit dans les meilleurs délais, et l'infirmier peut refuser d'exécuter s'il juge la présence du médecin nécessaire, à charge pour lui d'en avertir le médecin."},
+
+{c:"Ch.6 — Ordre permanent (staand order)", q:"Que désigne un « ordre permanent » selon l'AR du 18 juin 1990 ?", opts:[
+  "Une prescription valable à vie sans jamais être réévaluée",
+  "Un schéma de traitement écrit établi préalablement par le médecin, se référant le cas échéant à des plans de soins de référence ou procédures, et devant en principe désigner nominativement le patient concerné",
+  "Un acte que l'infirmier peut inventer librement sans validation médicale",
+  "Une prescription réservée uniquement aux médecins spécialistes"
+], correct:1, exp:"Un ordre permanent est un schéma de traitement écrit établi préalablement par le médecin. Il doit en principe désigner nominativement le patient concerné (sauf urgence) et préciser les conditions d'application ; l'infirmier apprécie si ces conditions sont remplies avant d'exécuter les actes prescrits, sinon il doit avertir le médecin."},
+
+{c:"Ch.6 — Aide-soignant", q:"Quelles conditions encadrent la délégation d'actes à l'aide-soignant ?", opts:[
+  "L'aide-soignant peut agir en toute autonomie sans contrôle infirmier",
+  "L'infirmier délègue les actes (révocables à tout moment) au sein d'une équipe structurée, avec formation continue d'au moins 8h/an pour l'aide-soignant, et doit rester accessible sans présence systématiquement requise",
+  "L'aide-soignant remplace totalement l'infirmier dans tous les actes B2",
+  "Aucune formation continue n'est requise pour l'aide-soignant"
+], correct:1, exp:"L'infirmier délègue les actes à l'aide-soignant au sein d'une équipe structurée (continuité garantie, concertation possible), peut retirer cette délégation à tout moment, doit contrôler et vérifier les actes réalisés (sans présence systématiquement requise, mais en restant accessible), et l'aide-soignant doit suivre une formation continue d'au moins 8 heures par an."},
+
+{c:"Ch.6 — Exercice illégal", q:"Qu'est-ce qui caractérise l'exercice illégal de l'art infirmier par une personne non qualifiée ?", opts:[
+  "Le fait d'exercer une seule fois, sans aucune condition supplémentaire",
+  "S'attribuer publiquement un titre auquel on ne peut prétendre, ou exercer habituellement avec bénéfice financier — deux fois suffisent à constituer une habitude (une seule fois si publicité, duperie ou condamnation antérieure)",
+  "Le fait d'être aide-soignant formé",
+  "Il n'existe aucune sanction pour exercice illégal"
+], correct:1, exp:"L'exercice illégal par une personne non qualifiée se caractérise par le fait de s'attribuer publiquement un titre non mérité ou d'exercer habituellement avec bénéfice financier. Deux occurrences suffisent à constituer une habitude (une seule suffit en cas de publicité, duperie, ou condamnation antérieure). Les sanctions sont pénales (amende, emprisonnement) et, pour l'infirmier fautif, également disciplinaires."},
+
+{c:"Ch.7 — Histoire des études infirmières", q:"Quels événements ont marqué la naissance des études d'infirmière en Belgique ?", opts:[
+  "1887 : premières ébauches de formation ; 1907 : A. Depage et Edith Cavell créent la première école laïque d'infirmières à Bruxelles ; 1908 : diplôme légal d'infirmière instauré",
+  "La formation infirmière n'a été instaurée qu'en 1993",
+  "Florence Nightingale a créé la première école belge",
+  "Aucune école n'existait avant la loi de 1974"
+], correct:0, exp:"En 1887 apparaissent les premières ébauches de formation en Belgique. En 1907, Antoine Depage et Edith Cavell créent la première école d'infirmières laïques à Bruxelles (3 ans). En 1908, le diplôme légal d'infirmière est instauré (diplôme de capacité, 1 an)."},
+
+{c:"Ch.7 — Déclaration de Bologne", q:"Que vise la Déclaration de Bologne pour les études infirmières ?", opts:[
+  "Uniformiser les salaires des infirmiers en Europe",
+  "Créer un espace européen de l'enseignement supérieur (EEES) avec un système de bachelier professionnalisant (180-240 crédits), un système ECTS pour la mobilité, et des passerelles vers le master",
+  "Supprimer le système des crédits ECTS",
+  "Elle ne concerne que les études de médecine"
+], correct:1, exp:"La Déclaration de Bologne, impliquant 40 pays européens, vise un espace européen de l'enseignement supérieur (EEES) pour 2010. Elle instaure le bachelier professionnalisant (1er cycle, 180-240 crédits, accès direct à la profession avec passerelles), le bachelier de transition, le master, le doctorat, et le système ECTS pour la mobilité des étudiants."},
+
+{c:"Liste des actes — B1 vs B2 (urinaire)", q:"Selon l'annexe I de l'AR du 18 juin 1990, quelle est la différence entre le sondage vésical et la sonde vésicale à demeure ?", opts:[
+  "Le sondage vésical unique ou intermittent est un acte B1 (sans prescription) ; la pose et surveillance d'une sonde vésicale à demeure est un acte B2 (avec prescription médicale)",
+  "Les deux actes sont B1, sans prescription requise",
+  "Les deux actes sont C, réservés au médecin",
+  "Le sondage vésical est toujours un acte C"
+], correct:0, exp:"L'annexe I classe le sondage vésical unique ou intermittent en B1 (pas de prescription requise), tandis que la préparation, l'administration et la surveillance d'une sonde vésicale à demeure relèvent du B2 (prescription médicale requise)."},
+
+{c:"Liste des actes — Actes C", q:"Lequel de ces actes figure dans l'annexe II (actes C, confiés par un médecin) de l'AR du 18 juin 1990 ?", opts:[
+  "L'administration orale de médicaments",
+  "La préparation et l'administration de produits cytostatiques (chimiothérapie) et de thérapies ciblées",
+  "La toilette du patient",
+  "La prise de tension artérielle"
+], correct:1, exp:"L'annexe II liste les actes C, c'est-à-dire les actes pouvant être confiés par un médecin ou un dentiste à l'infirmier : on y trouve notamment la préparation et l'administration de produits cytostatiques (chimiothérapie), de thérapies ciblées, d'isotopes, d'immunothérapie, ainsi que le prélèvement de sang par ponction artérielle ou la suture cutanée post-chirurgicale."},
+
+{c:"Liste des actes — Compétence (Art. 4bis)", q:"Que prévoit l'article 4bis de l'AR du 18 juin 1990 quant à la réalisation des prestations techniques infirmières ?", opts:[
+  "L'infirmier peut réaliser tout acte listé, quelle que soit sa formation",
+  "L'infirmier ne peut réaliser les prestations techniques et actes confiés que s'il dispose de la compétence, de la formation et/ou de l'expérience nécessaires pour les exécuter correctement et en toute sécurité",
+  "Seuls les médecins peuvent juger de la compétence de l'infirmier",
+  "La compétence n'est jamais un critère légal"
+], correct:1, exp:"L'article 4bis précise que l'infirmier n'est autorisé à réaliser les prestations techniques et les actes confiés par un médecin ou un dentiste que lorsqu'il dispose de la compétence, de la formation et/ou de l'expérience nécessaires pour les exécuter correctement et en toute sécurité — ce qui rejoint l'article 5 du Code de déontologie (refuser un soin pour lequel on n'est pas compétent)."}
+
+];
+
+let order = QUESTIONS.map((_,i)=>i);
+let idx = 0;
+let score = 0;
+let missed = [];      // indices missed during first pass
+let reviewQueue = [];
+let mode = "quiz";     // quiz | review | done
+let answered = false;
+let selected = null;
+
+const root = document.getElementById('root');
+
+function currentQ(){
+  if(mode==="quiz") return QUESTIONS[order[idx]];
+  if(mode==="review") return QUESTIONS[reviewQueue[idx]];
+  return null;
+}
+function currentGlobalIndex(){
+  return mode==="quiz" ? order[idx] : reviewQueue[idx];
+}
+
+function render(){
+  if(mode==="done"){ renderEnd(); return; }
+  const q = currentQ();
+  const total = mode==="quiz" ? order.length : reviewQueue.length;
+  const pct = Math.round((idx)/total*100);
+  const letters = ['A','B','C','D'];
+
+  let html = '';
+  if(mode==="review"){
+    html += `<div class="review-banner">🔁 Reprise des questions ratées — répondez correctement pour les valider.</div>`;
+  }
+  html += `<div class="progress-row">
+      <span class="progress-label">${mode==="review"?"Révision":"Question"} ${idx+1}/${total}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  html += `<div class="card">
+      <div class="chapter">${q.c}</div>
+      <div class="question">${q.q}</div>
+      <div class="options">`;
+  q.opts.forEach((opt,i)=>{
+    let cls = "opt";
+    if(answered){
+      if(i===q.correct) cls += " correct";
+      else if(i===selected) cls += " wrong";
+      else cls += " dim";
+    }
+    html += `<button class="${cls}" data-i="${i}" ${answered?"disabled":""} onclick="handleAnswer(${i})">
+        <span class="letter">${letters[i]}</span><span>${opt}</span>
+      </button>`;
+  });
+  html += `</div>`;
+  if(answered){
+    const isCorrect = selected===q.correct;
+    html += `<div class="feedback ${isCorrect?'ok':'bad'}">
+        <div class="fb-head">${isCorrect?'Correct':'Pas tout à fait'}</div>
+        ${q.exp}
+      </div>`;
+  }
+  html += `</div>`;
+  if(answered){
+    html += `<div class="nav-row"><button class="next" onclick="nextQuestion()">Suivant →</button></div>`;
+  }
+  root.innerHTML = html;
+}
+
+function handleAnswer(i){
+  if(answered) return;
+  answered = true;
+  selected = i;
+  const q = currentQ();
+  const gIdx = currentGlobalIndex();
+  if(mode==="quiz"){
+    if(i===q.correct){ score++; }
+    else { if(!missed.includes(gIdx)) missed.push(gIdx); }
+  } else if(mode==="review"){
+    if(i!==q.correct){
+      reviewQueue.push(gIdx); // requeue at the end for another try
+    }
+  }
+  render();
+}
+
+function nextQuestion(){
+  answered = false;
+  selected = null;
+  idx++;
+  if(mode==="quiz"){
+    if(idx >= order.length){
+      if(missed.length>0){
+        mode = "review";
+        reviewQueue = missed.slice();
+        missed = [];
+        idx = 0;
+      } else {
+        mode = "done";
+      }
+    }
+  } else if(mode==="review"){
+    if(idx >= reviewQueue.length){
+      mode = "done";
+    }
+  }
+  render();
+}
+
+function renderEnd(){
+  const pct = Math.round(score/QUESTIONS.length*100);
+  root.innerHTML = `
+    <div class="card end-card">
+      <div class="chapter">Résultat</div>
+      <div class="end-score">${score}<span>/${QUESTIONS.length}</span></div>
+      <div class="end-msg">
+        ${pct===100 ? "Score parfait dès le premier passage — la synthèse est bien intégrée." 
+          : "Vous avez terminé le QCM. Toutes les questions ratées ont été reposées jusqu'à réponse correcte, avec leur explication."}
+      </div>
+      <button class="restart" onclick="restart()">Recommencer le QCM</button>
+    </div>`;
+}
+
+function restart(){
+  order = QUESTIONS.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  idx=0; score=0; missed=[]; reviewQueue=[]; mode="quiz"; answered=false; selected=null;
+  render();
+}
+
+restart();
+</script>
+</body>
+</html>

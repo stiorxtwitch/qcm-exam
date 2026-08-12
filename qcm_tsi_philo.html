@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>QCM — TSI &amp; Philosophie appliquée aux soins infirmiers</title>
+<style>
+  :root{
+    --ink:#2b2e2c;
+    --paper:#f6f3ec;
+    --panel:#ffffff;
+    --sage:#5c7d6a;
+    --sage-dark:#3e5b4c;
+    --clay:#c96f4a;
+    --clay-soft:#f1d9cd;
+    --ok:#4a7c59;
+    --ok-bg:#e3efe4;
+    --bad:#b4483a;
+    --bad-bg:#f6e2dd;
+    --line:#d9d3c4;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  .app{width:100%;max-width:680px;}
+
+  header.top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+    margin-bottom:22px;
+  }
+  header.top .mark{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--sage-dark);
+  }
+  header.top h1{
+    font-size:20px;
+    margin:2px 0 0;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:26px;
+    font-family:'Courier New',monospace;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background:var(--line);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--sage);
+    transition:width .35s ease;
+  }
+  .progress-label{
+    font-size:12px;
+    color:var(--sage-dark);
+    white-space:nowrap;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 26px;
+    box-shadow:0 1px 0 var(--line);
+  }
+  .chapter{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--sage-dark);
+    margin-bottom:10px;
+  }
+  .question{
+    font-size:19px;
+    line-height:1.45;
+    margin:0 0 22px;
+    font-weight:600;
+  }
+
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    text-align:left;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    border-radius:8px;
+    padding:13px 16px;
+    font-family:inherit;
+    font-size:15.5px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    line-height:1.4;
+    transition:border-color .15s, background .15s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--sage);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{
+    font-family:'Courier New',monospace;
+    font-weight:700;
+    color:var(--sage-dark);
+    flex-shrink:0;
+  }
+  .opt.correct{background:var(--ok-bg);border-color:var(--ok);}
+  .opt.correct .letter{color:var(--ok);}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);}
+  .opt.wrong .letter{color:var(--bad);}
+  .opt.dim{opacity:.55;}
+
+  .feedback{
+    margin-top:20px;
+    padding:16px 18px;
+    border-radius:8px;
+    font-size:15px;
+    line-height:1.55;
+  }
+  .feedback.ok{background:var(--ok-bg);border-left:4px solid var(--ok);}
+  .feedback.bad{background:var(--bad-bg);border-left:4px solid var(--bad);}
+  .feedback .fb-head{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:6px;
+    font-weight:700;
+  }
+  .feedback.ok .fb-head{color:var(--ok);}
+  .feedback.bad .fb-head{color:var(--bad);}
+
+  .nav-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:22px;
+  }
+  button.next{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:var(--sage-dark);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  button.next:hover{background:var(--sage);}
+
+  .end-card{text-align:center;padding:40px 26px;}
+  .end-score{
+    font-size:52px;
+    font-weight:700;
+    color:var(--sage-dark);
+    margin:6px 0;
+  }
+  .end-score span{font-size:22px;color:var(--ink);opacity:.6;}
+  .end-msg{font-size:16px;margin:14px 0 24px;line-height:1.5;}
+  .restart{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:none;
+    border:1.5px solid var(--sage-dark);
+    color:var(--sage-dark);
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  .restart:hover{background:var(--sage-dark);color:#fff;}
+
+  .review-banner{
+    background:var(--clay-soft);
+    border:1px solid var(--clay);
+    border-radius:8px;
+    padding:12px 16px;
+    font-size:14px;
+    margin-bottom:16px;
+    color:#7a3a24;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="mark">HEPL — Révision</div>
+      <h1>TSI &amp; Philosophie appliquée aux soins infirmiers</h1>
+    </div>
+  </header>
+  <div id="root"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+{c:"TSI Ch.1 — Identité pro", q:"La socialisation professionnalisante se déroule en 3 temps. Quel est l'ordre correct ?", opts:[
+  "Frustration → Réalité désenchantée → Ajustement",
+  "Réalité désenchantée → Frustration → Ajustement/adaptation",
+  "Ajustement → Frustration → Réalité désenchantée",
+  "Réalité désenchantée → Ajustement → Frustration"
+], correct:1, exp:"L'ordre est : 1) Réalité désenchantée (choc entre représentations et réalité professionnelle), 2) Frustration (idéal vs quotidien), 3) Ajustement/adaptation (prise de conscience de ses capacités)."},
+
+{c:"TSI Ch.1 — Identité pro", q:"Selon Hughes, quels sont les 4 éléments de base de l'identité professionnelle ?", opts:[
+  "Nature de la tâche, conception des rôles, anticipation des carrières, image de soi",
+  "Savoir, savoir-faire, savoir-être, savoir-devenir",
+  "Personne, environnement, santé, soin",
+  "Autonomie, indépendance, collaboration, formation"
+], correct:0, exp:"Hughes identifie 4 éléments : nature de la tâche, conception des rôles (fonctions de l'infirmier), anticipation des carrières, et image de soi."},
+
+{c:"TSI Ch.1 — Métier/Profession", q:"Quelle est la différence essentielle entre « métier » et « profession » selon le cours ?", opts:[
+  "Le métier implique un rôle social, la profession non",
+  "Le métier tire du côté de la compétence (savoir-faire par l'expérience), la profession tire du côté de l'accomplissement (savoirs savants, engagement, rôle social)",
+  "Il n'y a aucune différence",
+  "La profession est toujours manuelle, le métier toujours intellectuel"
+], correct:1, exp:"Le métier est un travail manuel/technique acquis par l'expérience (compétence). La profession fait appel à des savoirs savants, à l'abstraction, et implique un engagement et un rôle social (accomplissement)."},
+
+{c:"TSI Ch.1 — Benner", q:"Dans le modèle de Benner, quel stade se caractérise par un comportement rigide, l'absence de priorisation et la seule gestion des paramètres mesurables ?", opts:[
+  "Compétente",
+  "Performante",
+  "Novice",
+  "Experte"
+], correct:2, exp:"Le stade Novice correspond à l'absence d'expérience : comportement rigide, pas de priorisation, gestion uniquement des paramètres mesurables."},
+
+{c:"TSI Ch.1 — Benner", q:"À quel stade du modèle de Benner développe-t-on le « signal d'alarme » et une compréhension globale de la situation ?", opts:[
+  "Débutante",
+  "Compétente",
+  "Performante",
+  "Novice"
+], correct:2, exp:"Le stade Performante (3-5 ans d'expérience) comprend la situation de manière globale et développe le fameux « signal d'alarme »."},
+
+{c:"TSI Ch.2 — Discipline infirmière", q:"Selon Pepin, Kérouac et Ducharme (2010), la discipline infirmière s'intéresse au soin auprès de qui, en interaction avec quoi ?", opts:[
+  "Uniquement les patients hospitalisés, en interaction avec le personnel médical",
+  "Personnes, familles, communautés et populations, en interaction continue avec leur environnement, vivant des expériences de santé",
+  "Uniquement les familles, en interaction avec la société",
+  "Les infirmiers eux-mêmes, en interaction avec les protocoles institutionnels"
+], correct:1, exp:"La définition complète évoque le soin auprès des personnes, familles, communautés et populations, en interaction continue avec leur environnement, vivant des expériences de santé — on y retrouve les 4 éléments du centre d'intérêt : soin, personne, environnement, santé."},
+
+{c:"TSI Ch.2 — Fawcett", q:"Selon Fawcett (1978), quels sont les 4 concepts centraux de la discipline infirmière ?", opts:[
+  "Nature de la tâche, rôles, carrière, image de soi",
+  "Cure, care, disease, illness",
+  "La Personne, l'Environnement, la Santé, le Soin",
+  "Catégorisation, intégration, transformation, paradigme"
+], correct:2, exp:"Les 4 concepts centraux du « centre d'intérêt » de la discipline infirmière selon Fawcett sont : la Personne, l'Environnement, la Santé, le Soin."},
+
+{c:"TSI Ch.2 — Paradigmes", q:"Dans le paradigme de la TRANSFORMATION, comment le soin est-il défini ?", opts:[
+  "« Faire pour »",
+  "« Agir avec »",
+  "« Être avec »",
+  "« Observer sans intervenir »"
+], correct:2, exp:"Paradigme Catégorisation = « Faire pour » ; Intégration = « Agir avec » ; Transformation = « Être avec », avec la personne vue comme un être indissociable et unique."},
+
+{c:"TSI Ch.2 — Paradigmes", q:"Dans le paradigme de CATÉGORISATION, sur quoi porte le focus concernant la personne ?", opts:[
+  "L'être biopsychosocioculturel",
+  "L'organe malade",
+  "L'être indissociable et unique",
+  "L'ensemble de l'univers"
+], correct:1, exp:"Le paradigme de catégorisation centre le focus sur l'organe malade — une vision plus restreinte que l'intégration (être biopsychosocioculturel) ou la transformation (être unique et indissociable)."},
+
+{c:"TSI Ch.3 — Historique", q:"À quelle période correspond la « Femme auxiliaire », et quelle était sa caractéristique principale ?", opts:[
+  "Temps reculés — soins de la fécondité à l'ensevelissement",
+  "Moyen-Âge — soin des âmes par les religieuses",
+  "1789-1950 — formée par le corps médical, obéissante et soumise pour seconder le médecin",
+  "1970 à aujourd'hui — recherche en sciences infirmières et autonomie"
+], correct:2, exp:"La Femme auxiliaire (1789-1950) exerce à l'hôpital, formée par le corps médical mais de façon à rester obéissante et soumise pour seconder le médecin — soins centrés sur la maladie."},
+
+{c:"TSI Ch.3 — Historique", q:"Selon Joiris (2009), quelle est la « triple filiation » de l'infirmière ?", opts:[
+  "Femme, femme consacrée, femme auxiliaire",
+  "Novice, débutante, experte",
+  "Cure, care, caring",
+  "Catégorisation, intégration, transformation"
+], correct:0, exp:"Le postulat de Joiris (2009) identifie une triple filiation : femme (vocation naturelle), femme consacrée (religieuse hospitalière), femme auxiliaire (soumise au médecin)."},
+
+{c:"TSI Ch.4 — Repères légaux", q:"La loi coordonnée régissant l'art infirmier (Art. 46) date de quand ?", opts:[
+  "10 mai 2015, modifiée le 8 mai 2024",
+  "3 avril 1990",
+  "11 février 2005",
+  "1974"
+], correct:0, exp:"L'Art. 46 de la loi coordonnée date du 10 mai 2015 et a été modifié le 8 mai 2024. Il définit l'art infirmier comme l'accomplissement des activités constituant les soins infirmiers."},
+
+{c:"TSI Ch.4 — Missions OMS", q:"Selon l'OMS, quelle est la mission des soins infirmiers ?", opts:[
+  "Uniquement traiter et guérir les maladies aiguës",
+  "Aider les individus, familles et groupes à déterminer et réaliser leur plein potentiel physique, mental et social dans leur environnement",
+  "Remplacer le rôle du médecin en cas d'urgence",
+  "Gérer exclusivement les aspects administratifs des soins"
+], correct:1, exp:"La mission OMS est d'aider les individus, familles et groupes à déterminer et réaliser leur plein potentiel physique, mental et social, dans le contexte de leur environnement de vie et de travail."},
+
+{c:"TSI Ch.5 — Théories", q:"Quelle est la différence entre théories professionnelles et théories conceptuelles ?", opts:[
+  "Les professionnelles guident/expliquent les tâches ; les conceptuelles guident la manière de travailler et clarifient le cadre de la profession",
+  "Les conceptuelles guident les tâches ; les professionnelles clarifient le cadre de travail",
+  "Il n'existe qu'un seul type de théorie en soins infirmiers",
+  "Les théories professionnelles concernent uniquement la recherche académique"
+], correct:0, exp:"Les théories professionnelles (P) guident et expliquent les tâches (ex : prise de repères pour une IM). Les théories conceptuelles (C) guident la manière de travailler et clarifient le cadre et la profession elle-même."},
+
+{c:"TSI Ch.5 — Écoles de pensée", q:"L'école des besoins (Henderson, Orem, Abdellah) répond à quelle question centrale ?", opts:[
+  "Comment font-ils ?",
+  "Que font les infirmiers ? (centralité de l'indépendance dans la satisfaction des besoins)",
+  "À qui s'adressent les infirmiers ?",
+  "Pourquoi font-ils ?"
+], correct:1, exp:"L'école des besoins répond à « que font les infirmiers ? », avec pour centralité l'indépendance dans la satisfaction des besoins fondamentaux."},
+
+{c:"TSI Ch.5 — Henderson", q:"Quelles sont les 3 notions clés du modèle de Virginia Henderson ?", opts:[
+  "Cure, care, caring",
+  "Autonomie de l'infirmière, indépendance du malade, équipe pluridisciplinaire",
+  "Personne, environnement, soin",
+  "Culture institutionnelle, médicale, infirmière"
+], correct:1, exp:"Les 3 notions clés de Henderson sont : l'autonomie de l'infirmière (initiative et contrôle), l'indépendance du malade (objectif à atteindre) et l'équipe pluridisciplinaire (collaboration)."},
+
+{c:"TSI Ch.5 — Henderson", q:"À quel paradigme appartient le modèle de Henderson, et quelle en est la principale limite selon le cours ?", opts:[
+  "Transformation ; aucune limite identifiée",
+  "Intégration ; l'environnement est absent du modèle",
+  "Catégorisation ; centré uniquement sur l'organe malade",
+  "Transformation ; trop centré sur l'environnement"
+], correct:1, exp:"Henderson appartient au paradigme de l'Intégration : centré sur la personne à 3 dimensions, avec un objectif de santé générale — mais l'environnement est absent (une limite du modèle)."},
+
+{c:"TSI Ch.5 — Nadot", q:"Quel est le premier postulat du modèle de M. Nadot concernant le terme « infirmière » ?", opts:[
+  "Le terme « infirmière » est parfaitement adapté et doit être conservé",
+  "La discipline ne peut pas être « infirmière » car le terme vient d'« enfermier » (mauvais, malsain) ; il préfère « intermédiaire culturel »",
+  "Le terme « infirmière » vient du latin « infirmus » signifiant force",
+  "Le terme n'a aucune importance dans la construction identitaire"
+], correct:1, exp:"Nadot postule que la discipline ne peut pas s'appeler « infirmière », terme issu d'« enfermier » (connotation négative) et lié à des principes théologiques ; il préfère « intermédiaire culturel » ou « médiologue de santé »."},
+
+{c:"TSI Ch.5 — Nadot", q:"Dans le modèle de Nadot, à quel système culturel appartient la « culture infirmière », et quelle est sa nature ?", opts:[
+  "SC1, prescriptive",
+  "SC2, prescriptive",
+  "SC3, réflexive",
+  "SC4, institutionnelle"
+], correct:2, exp:"SC1 = culture institutionnelle (prescriptive), SC2 = culture médicale (prescriptive), SC3 = culture infirmière (réflexive, en interaction directe avec la personne soignée). L'infirmière devient interMÉDiaire culturel (SC4) entre ces 3 systèmes."},
+
+{c:"TSI Ch.5 — Nadot", q:"Dans le modèle profane de Nadot, que représente « Familia » ?", opts:[
+  "Prendre soin de la vie de l'humain",
+  "Prendre soin de la vie du groupe",
+  "Prendre soin de la vie du domaine / de l'environnement",
+  "Prendre soin uniquement des enfants"
+], correct:1, exp:"Les 3 publics de Nadot sont : Hominem (vie de l'humain), Familia (vie du groupe), Domus (vie du domaine = l'environnement)."},
+
+{c:"TSI Ch.6 — Santé", q:"Selon Leriche (1937), comment définit-on la santé ?", opts:[
+  "État complet de bien-être physique, mental et social",
+  "La vie dans le silence des organes → absence de maladie",
+  "Ressource de la vie quotidienne, concept positif",
+  "Capacité de penser et d'agir"
+], correct:1, exp:"Leriche (1937) définit la santé comme « la vie dans le silence des organes », soit une conception centrée sur l'absence de maladie — une vision plus restrictive que celle de l'OMS ou de la Charte d'Ottawa."},
+
+{c:"TSI Ch.6 — Soin", q:"Quelle est la distinction entre CURE et CARE ?", opts:[
+  "CURE = prendre soin globalement ; CARE = uniquement guérir",
+  "CURE = traiter, guérir (aspect curatif) ; CARE = prendre soin, aspect global préventif et palliatif",
+  "Ce sont deux synonymes sans distinction",
+  "CURE concerne l'esprit, CARE concerne le corps"
+], correct:1, exp:"CURE renvoie à traiter/guérir (curatif), tandis que CARE renvoie à prendre soin, avoir du souci, dans une approche globale, préventive et palliative."},
+
+{c:"Philo — Définitions", q:"Que signifie étymologiquement « philosophie », et en quoi diffère-t-elle de la réflexion scientifique ?", opts:[
+  "« Amour de la sagesse » ; le temps n'a pas d'emprise sur la réflexion philosophique, contrairement à la science",
+  "« Recherche de la vérité absolue » ; elle évolue exactement comme la science",
+  "« Connaissance du corps » ; elle se concentre sur le mesurable",
+  "« Étude du langage » ; elle n'a aucun lien avec la vérité"
+], correct:0, exp:"Philo (aimer) + Sophia (sagesse) = « amour de la sagesse ». La philosophie est une analyse critique dirigée vers la vérité ; contrairement à la science, le temps n'a pas d'emprise sur elle."},
+
+{c:"Philo — Méthodes", q:"Quelle est la différence entre la dialectique et la maïeutique ?", opts:[
+  "La dialectique est l'art d'accoucher les esprits ; la maïeutique est le dialogue contradictoire",
+  "La dialectique est un raisonnement issu de la discussion mettant en évidence des contradictions ; la maïeutique (« art d'accoucher les esprits ») fait exprimer un savoir caché en soi",
+  "Ce sont deux termes strictement identiques",
+  "La dialectique concerne uniquement Spinoza, la maïeutique uniquement Watson"
+], correct:1, exp:"La dialectique est une méthode de raisonnement issue de la discussion, qui met en évidence des contradictions pour les dépasser. La maïeutique, « art d'accoucher les esprits » (Socrate), vise à faire exprimer une connaissance innée cachée en soi."},
+
+{c:"Philo — Champs", q:"Quel champ de la philosophie est défini comme « l'étude de l'existence » (santé, soin...) ?", opts:[
+  "Métaphysique",
+  "Ontologie",
+  "Épistémologie",
+  "Esthétique"
+], correct:1, exp:"L'ontologie est l'étude de l'existence (santé, soin...), une des branches les plus importantes avec l'éthique et l'épistémologie. La métaphysique porte plus généralement sur la vie et la mort ; l'épistémologie sur la construction des savoirs."},
+
+{c:"Philo — Socrate", q:"Que signifie la maxime socratique « Connais-toi toi-même », et pourquoi l'ignorance de soi est-elle problématique ?", opts:[
+  "Elle invite à se libérer des entraves qui empêchent l'âme de penser ; l'ignorance de soi rend l'homme esclave des opinions et des préjugés",
+  "Elle invite à ignorer les autres pour se concentrer sur soi",
+  "Elle concerne uniquement la connaissance médicale du corps",
+  "Elle signifie qu'il faut suivre aveuglément les préjugés de la société"
+], correct:0, exp:"« Connais-toi toi-même » vise à se libérer des entraves empêchant l'âme de penser : l'ignorance de soi rend l'homme esclave de ses opinions et préjugés."},
+
+{c:"Philo — Socrate", q:"Quel est le « rythme de Socrate », le processus de connaissance en 3 étapes ?", opts:[
+  "Désir de savoir → prise de conscience → ignorance de l'ignorance",
+  "Ignorance de l'ignorance → prise de conscience de l'ignorance → désir de savoir",
+  "Ignorance → certitude → vérité absolue",
+  "Observation → expérimentation → conclusion"
+], correct:1, exp:"Le rythme de Socrate se déroule en 3 étapes : 1) ignorance de l'ignorance, 2) prise de conscience de l'ignorance, 3) désir de savoir. Ce rythme préside à tout processus de connaissance."},
+
+{c:"Philo — Spinoza", q:"Que signifie le monisme chez Spinoza, et que veut dire « Deus sive Natura » ?", opts:[
+  "Le corps et l'esprit sont deux réalités totalement séparées ; Dieu est distinct de la Nature",
+  "Le corps et l'esprit sont deux aspects d'une même réalité interconnectée ; Dieu = la Nature, tout suit ses lois nécessaires",
+  "Il n'existe que l'esprit, le corps est une illusion",
+  "Le monisme signifie que seule la religion explique la maladie"
+], correct:1, exp:"Le monisme de Spinoza pose que le corps et l'esprit sont deux attributs d'une même réalité (interconnectés). « Deus sive Natura » signifie Dieu = la Nature : tout ce qui existe suit ses lois nécessaires, sans cause finale à la maladie."},
+
+{c:"Philo — Spinoza", q:"Chez Spinoza, quelle est la différence entre idées inadéquates et idées adéquates face à la maladie ?", opts:[
+  "Les idées inadéquates mènent à la tristesse et à la passivité ; les idées adéquates (comprendre la maladie comme phénomène naturel) font passer de passif à actif et augmentent la puissance d'être",
+  "Les idées adéquates rendent toujours malheureux, les inadéquates rendent heureux",
+  "Il n'y a aucune différence entre les deux",
+  "Les idées adéquates concernent uniquement la guérison physique"
+], correct:0, exp:"Les idées inadéquates provoquent tristesse et passivité (diminuent la puissance d'être) ; les idées adéquates, qui comprennent la maladie comme un phénomène naturel, font passer de passif à actif et augmentent la puissance d'être — c'est la « joie » spinoziste."},
+
+{c:"Philo — Phénoménologie", q:"Quelle est la différence entre « corps objet » et « corps propre », et entre « disease » et « illness » ?", opts:[
+  "Corps objet = vécu par le patient (illness) ; corps propre = vu par le médecin (disease)",
+  "Corps objet = assemblage physico-chimique vu par le médecin (disease) ; corps propre = corps vécu de l'intérieur par le sujet (illness)",
+  "Ce sont des synonymes sans distinction utile",
+  "Le corps objet n'existe que chez les enfants"
+], correct:1, exp:"Le corps objet est le corps vu par le médecin comme assemblage de processus physiques et chimiques (disease). Le corps propre est le corps tel que vécu de l'intérieur par le patient, avec ses émotions et représentations (illness)."},
+
+{c:"Philo — Watson", q:"Selon Jean Watson (1999), quel est le but de la relation de caring transpersonnelle ?", opts:[
+  "Appliquer strictement les protocoles techniques sans lien humain",
+  "La protection, l'amélioration et la préservation de la dignité humaine, l'intégralité et l'harmonie de la personne soignée",
+  "Remplacer le rôle du médecin par celui de l'infirmière",
+  "Se concentrer uniquement sur le corps, en excluant l'âme et l'esprit"
+], correct:1, exp:"Pour Watson, la relation de caring transpersonnelle vise la protection, l'amélioration et la préservation de la dignité humaine, ainsi que l'intégralité et l'harmonie de la personne soignée, en s'appuyant sur des valeurs humanistes."},
+
+{c:"Philo — Synthèse", q:"Que signifie le principe hippocratique « Primum, non nocere », rappelé à propos de Socrate et de Watson ?", opts:[
+  "D'abord, guérir à tout prix, quels que soient les risques",
+  "D'abord, ne pas nuire — au patient, mais aussi à soi-même",
+  "D'abord, prescrire le traitement le plus rapide possible",
+  "D'abord, obéir strictement à la hiérarchie médicale"
+], correct:1, exp:"« Primum, non nocere » signifie « d'abord, ne pas nuire ». Le cours souligne que ce principe s'applique au patient qui nous est confié, mais aussi à soi-même en tant que soignant."}
+];
+
+let order = QUESTIONS.map((_,i)=>i);
+let idx = 0;
+let score = 0;
+let missed = [];      // indices missed during first pass
+let reviewQueue = [];
+let mode = "quiz";     // quiz | review | done
+let answered = false;
+let selected = null;
+
+const root = document.getElementById('root');
+
+function currentQ(){
+  if(mode==="quiz") return QUESTIONS[order[idx]];
+  if(mode==="review") return QUESTIONS[reviewQueue[idx]];
+  return null;
+}
+function currentGlobalIndex(){
+  return mode==="quiz" ? order[idx] : reviewQueue[idx];
+}
+
+function render(){
+  if(mode==="done"){ renderEnd(); return; }
+  const q = currentQ();
+  const total = mode==="quiz" ? order.length : reviewQueue.length;
+  const pct = Math.round((idx)/total*100);
+  const letters = ['A','B','C','D'];
+
+  let html = '';
+  if(mode==="review"){
+    html += `<div class="review-banner">🔁 Reprise des questions ratées — répondez correctement pour les valider.</div>`;
+  }
+  html += `<div class="progress-row">
+      <span class="progress-label">${mode==="review"?"Révision":"Question"} ${idx+1}/${total}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  html += `<div class="card">
+      <div class="chapter">${q.c}</div>
+      <div class="question">${q.q}</div>
+      <div class="options">`;
+  q.opts.forEach((opt,i)=>{
+    let cls = "opt";
+    if(answered){
+      if(i===q.correct) cls += " correct";
+      else if(i===selected) cls += " wrong";
+      else cls += " dim";
+    }
+    html += `<button class="${cls}" data-i="${i}" ${answered?"disabled":""} onclick="handleAnswer(${i})">
+        <span class="letter">${letters[i]}</span><span>${opt}</span>
+      </button>`;
+  });
+  html += `</div>`;
+  if(answered){
+    const isCorrect = selected===q.correct;
+    html += `<div class="feedback ${isCorrect?'ok':'bad'}">
+        <div class="fb-head">${isCorrect?'Correct':'Pas tout à fait'}</div>
+        ${q.exp}
+      </div>`;
+  }
+  html += `</div>`;
+  if(answered){
+    html += `<div class="nav-row"><button class="next" onclick="nextQuestion()">Suivant →</button></div>`;
+  }
+  root.innerHTML = html;
+}
+
+function handleAnswer(i){
+  if(answered) return;
+  answered = true;
+  selected = i;
+  const q = currentQ();
+  const gIdx = currentGlobalIndex();
+  if(mode==="quiz"){
+    if(i===q.correct){ score++; }
+    else { if(!missed.includes(gIdx)) missed.push(gIdx); }
+  } else if(mode==="review"){
+    if(i!==q.correct){
+      reviewQueue.push(gIdx); // requeue at the end for another try
+    }
+  }
+  render();
+}
+
+function nextQuestion(){
+  answered = false;
+  selected = null;
+  idx++;
+  if(mode==="quiz"){
+    if(idx >= order.length){
+      if(missed.length>0){
+        mode = "review";
+        reviewQueue = missed.slice();
+        missed = [];
+        idx = 0;
+      } else {
+        mode = "done";
+      }
+    }
+  } else if(mode==="review"){
+    if(idx >= reviewQueue.length){
+      mode = "done";
+    }
+  }
+  render();
+}
+
+function renderEnd(){
+  const pct = Math.round(score/QUESTIONS.length*100);
+  root.innerHTML = `
+    <div class="card end-card">
+      <div class="chapter">Résultat</div>
+      <div class="end-score">${score}<span>/${QUESTIONS.length}</span></div>
+      <div class="end-msg">
+        ${pct===100 ? "Score parfait dès le premier passage — la synthèse est bien intégrée." 
+          : "Vous avez terminé le QCM. Toutes les questions ratées ont été reposées jusqu'à réponse correcte, avec leur explication."}
+      </div>
+      <button class="restart" onclick="restart()">Recommencer le QCM</button>
+    </div>`;
+}
+
+function restart(){
+  order = QUESTIONS.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  idx=0; score=0; missed=[]; reviewQueue=[]; mode="quiz"; answered=false; selected=null;
+  render();
+}
+
+restart();
+</script>
+</body>
+</html>

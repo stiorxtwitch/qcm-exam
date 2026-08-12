@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>QCM — Soins infirmiers à la personne handicapée</title>
+<style>
+  :root{
+    --ink:#2b2e2c;
+    --paper:#f6f3ec;
+    --panel:#ffffff;
+    --sage:#5c7d6a;
+    --sage-dark:#3e5b4c;
+    --clay:#c96f4a;
+    --clay-soft:#f1d9cd;
+    --ok:#4a7c59;
+    --ok-bg:#e3efe4;
+    --bad:#b4483a;
+    --bad-bg:#f6e2dd;
+    --line:#d9d3c4;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  .app{width:100%;max-width:680px;}
+
+  header.top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+    margin-bottom:22px;
+  }
+  header.top .mark{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--sage-dark);
+  }
+  header.top h1{
+    font-size:20px;
+    margin:2px 0 0;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:26px;
+    font-family:'Courier New',monospace;
+  }
+  .progress-track{
+    flex:1;
+    height:6px;
+    background:var(--line);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--sage);
+    transition:width .35s ease;
+  }
+  .progress-label{
+    font-size:12px;
+    color:var(--sage-dark);
+    white-space:nowrap;
+  }
+  .mode-tag{
+    display:inline-block;
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    background:var(--clay-soft);
+    color:var(--clay);
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:14px;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 26px;
+    box-shadow:0 1px 0 var(--line);
+  }
+  .chapter{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--sage-dark);
+    margin-bottom:10px;
+  }
+  .question{
+    font-size:19px;
+    line-height:1.45;
+    margin:0 0 22px;
+    font-weight:600;
+  }
+
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt{
+    text-align:left;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    border-radius:8px;
+    padding:13px 16px;
+    font-family:inherit;
+    font-size:15.5px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    line-height:1.4;
+    transition:border-color .15s, background .15s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--sage);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{
+    font-family:'Courier New',monospace;
+    font-weight:700;
+    color:var(--sage-dark);
+    flex-shrink:0;
+  }
+  .opt.correct{background:var(--ok-bg);border-color:var(--ok);}
+  .opt.correct .letter{color:var(--ok);}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);}
+  .opt.wrong .letter{color:var(--bad);}
+  .opt.dim{opacity:.55;}
+
+  .feedback{
+    margin-top:20px;
+    padding:16px 18px;
+    border-radius:8px;
+    font-size:15px;
+    line-height:1.55;
+  }
+  .feedback.ok{background:var(--ok-bg);border-left:4px solid var(--ok);}
+  .feedback.bad{background:var(--bad-bg);border-left:4px solid var(--bad);}
+  .feedback .fb-head{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:6px;
+    font-weight:700;
+  }
+  .feedback.ok .fb-head{color:var(--ok);}
+  .feedback.bad .fb-head{color:var(--bad);}
+
+  .nav-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:22px;
+  }
+  button.next{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:var(--sage-dark);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  button.next:hover{background:var(--sage);}
+
+  .end-card{text-align:center;padding:40px 26px;}
+  .end-score{
+    font-size:52px;
+    font-weight:700;
+    color:var(--sage-dark);
+    margin:6px 0;
+  }
+  .end-score span{font-size:22px;color:var(--ink);opacity:.6;}
+  .end-msg{font-size:16px;margin:14px 0 24px;line-height:1.5;}
+  .restart{
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:13px;
+    background:none;
+    border:1.5px solid var(--sage-dark);
+    color:var(--sage-dark);
+    border-radius:6px;
+    padding:11px 20px;
+    cursor:pointer;
+  }
+  .restart:hover{background:var(--sage-dark);color:#fff;}
+
+  .review-banner{
+    background:var(--clay-soft);
+    border:1px solid var(--clay);
+    border-radius:8px;
+    padding:12px 16px;
+    font-size:14px;
+    margin-bottom:16px;
+    color:#7a3a24;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="mark">HEPL — Révision</div>
+      <h1>Soins infirmiers à la personne handicapée</h1>
+    </div>
+  </header>
+  <div id="root"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+{c:"Ch.1 — Définitions", q:"Selon la définition de Hamonet (2010), le handicap résulte de quoi ?", opts:[
+  "D'une déficience génétique uniquement",
+  "De la confrontation interactive entre les capacités d'une personne et les contraintes de son cadre de vie",
+  "D'un manque de volonté d'intégration de la personne",
+  "D'une décision médicale officielle"
+], correct:1, exp:"Hamonet définit le handicap comme la restriction d'activités et de participation résultant de la confrontation interactive entre les capacités (limitées) de la personne et les contraintes physiques et sociales de son environnement."},
+
+{c:"Ch.1 — Définitions", q:"Que met en avant la Convention de l'ONU (2006) sur le handicap ?", opts:[
+  "Le handicap comme maladie chronique à traiter",
+  "L'interaction entre incapacités durables et barrières qui empêche une participation pleine et égale à la société",
+  "Le handicap comme incapacité totale de travailler",
+  "Uniquement les déficiences physiques"
+], correct:1, exp:"La Convention ONU 2006 parle de personnes ayant des incapacités durables dont l'interaction avec diverses barrières peut faire obstacle à leur pleine et effective participation à la société, sur la base de l'égalité avec les autres."},
+
+{c:"Ch.1 — Caractéristiques", q:"D'après Dessertine (1983), lesquelles NE font PAS partie des 4 caractéristiques du handicap ?", opts:[
+  "Notion relative",
+  "Situation évolutive",
+  "Réalités différentes non réductibles",
+  "Notion permanente et figée dans le temps"
+], correct:3, exp:"Les 4 caractéristiques sont : relative, évolutive, recouvrant des réalités différentes, et appréhendée en fonction de l'état de la société. Le handicap n'est justement PAS figé : il est évolutif."},
+
+{c:"Ch.1 — Épidémiologie", q:"En Belgique, sur quoi se basent les données épidémiologiques du handicap ?", opts:[
+  "Une base de données officielle nationale",
+  "Les statistiques de l'OMS uniquement",
+  "L'enquête de l'ISSP (Institut Scientifique de la Santé Publique)",
+  "Le recensement décennal de la population"
+], correct:2, exp:"Il n'existe pas de base de données officielle en Belgique : les données reposent sur l'enquête de l'ISSP, avec un recensement selon le degré d'autonomie et de dépendance."},
+
+{c:"Ch.2 — Modèles", q:"Dans le modèle social du handicap, l'origine du handicap est considérée comme :", opts:[
+  "Interne à l'individu",
+  "Externe à l'individu (produit de la société)",
+  "Purement génétique",
+  "Liée uniquement à l'âge"
+], correct:1, exp:"Le modèle social (apparu dans les années 1960) considère le handicap comme un produit social : son origine est externe à l'individu, contrairement au modèle médical où il est intrinsèque à la personne."},
+
+{c:"Ch.2 — CIF", q:"La Classification Internationale du Fonctionnement (CIF) a été développée sur combien d'années et approuvée par combien de pays ?", opts:[
+  "5 ans, 100 pays",
+  "10 ans, 191 pays",
+  "20 ans, 50 pays",
+  "2 ans, 191 pays"
+], correct:1, exp:"La CIF (OMS, 2001) a été développée sur 10 ans avec 65 pays participants, puis approuvée par 191 pays."},
+
+{c:"Ch.2 — CIF", q:"Dans la CIF, l'aspect négatif de la composante « Fonctions organiques et structures anatomiques » s'appelle :", opts:[
+  "Limitation d'activité",
+  "Restriction de participation",
+  "Déficience",
+  "Obstacle"
+], correct:2, exp:"Les fonctions organiques et structures anatomiques, en aspect négatif, donnent des DÉFICIENCES : des problèmes sous forme d'écart ou de perte importante."},
+
+{c:"Ch.2 — CIF", q:"La composante « Participation » de la CIF évalue :", opts:[
+  "La capacité (ce que la personne peut faire en théorie)",
+  "La performance (l'implication réelle dans une situation de vie)",
+  "Les fonctions organiques",
+  "Les facteurs personnels uniquement"
+], correct:1, exp:"La Participation correspond à l'implication dans une situation de la vie réelle ; son évaluation porte sur la performance. L'aspect négatif correspondant est la « restriction de participation »."},
+
+{c:"Ch.2 — Facteurs contextuels", q:"Lequel de ces éléments appartient aux facteurs PERSONNELS (et non environnementaux) dans la CIF ?", opts:[
+  "Les bâtiments et services",
+  "L'environnement social et attitudinal",
+  "Le sexe, l'âge, le mode de vie, l'éducation",
+  "La famille et les étrangers"
+], correct:2, exp:"Les facteurs personnels incluent le sexe, l'âge, la race, le mode de vie, l'éducation, les expériences passées et présentes, la condition physique. Les facteurs environnementaux couvrent plutôt le physique, le social et l'attitudinal (famille, bâtiments, services...)."},
+
+{c:"Ch.3 — Droits", q:"En Belgique, quelle loi lutte contre les discriminations liées au handicap ?", opts:[
+  "La loi du 3 avril 1990",
+  "La loi du 11 février 2005",
+  "La loi du 10 mai 2007",
+  "La loi du 1er janvier 2001"
+], correct:2, exp:"La loi du 10 mai 2007 lutte contre les discriminations liées au handicap, dans le cadre du plan d'action du Conseil de l'Europe pour promouvoir dignité, autonomie et citoyenneté."},
+
+{c:"Ch.3 — Droits", q:"Parmi les 8 principes de l'Article 3 de la CRDPH, lequel n'y figure PAS ?", opts:[
+  "Non-discrimination",
+  "Accessibilité",
+  "Priorité donnée aux soins curatifs sur l'autonomie",
+  "Égalité entre hommes et femmes"
+], correct:2, exp:"Les 8 principes sont : dignité/autonomie/indépendance, non-discrimination, participation et intégration, respect de la différence, égalité des chances, accessibilité, égalité hommes-femmes, et respect du développement des capacités de l'enfant handicapé. La priorité au curatif n'en fait pas partie."},
+
+{c:"Ch.3 — Discrimination", q:"Le refus d'entrée dans un restaurant à cause d'un chien d'assistance est un exemple de :", opts:[
+  "Discrimination directe",
+  "Discrimination indirecte",
+  "Harcèlement discriminatoire",
+  "Refus d'aménagement raisonnable"
+], correct:1, exp:"C'est une discrimination INDIRECTE : une disposition apparemment neutre (interdiction des chiens) qui désavantage particulièrement les personnes handicapées."},
+
+{c:"Ch.4 — Étiologie", q:"La trisomie 21 relève de quelle catégorie étiologique de déficience intellectuelle ?", opts:[
+  "Écologique",
+  "Psychologique",
+  "Génétique",
+  "Biologique (agression périnatale)"
+], correct:2, exp:"La trisomie 21 est une aberration chromosomique, donc une cause génétique — c'est l'exemple donné dans le cours pour cette catégorie."},
+
+{c:"Ch.4 — Retard mental", q:"Selon la classification OMS, un retard mental « léger » correspond à quel QI ?", opts:[
+  "QI < 20",
+  "20 < QI < 34",
+  "30 < QI < 49",
+  "50 < QI < 70"
+], correct:3, exp:"Léger : 50 < QI < 70, avec scolarisation possible en enseignement adapté. (Moyen : 30-49 ; Grave : 20-34 ; Profond : <20)."},
+
+{c:"Ch.4 — Trisomie 21", q:"Quelle est la fréquence de la trisomie 21, et comment évolue-t-elle avec l'âge maternel ?", opts:[
+  "1/1100 naissances, monte à 1/100 si mère > 40 ans",
+  "1/100 naissances, stable quel que soit l'âge",
+  "1/500 naissances, diminue avec l'âge maternel",
+  "1/50 naissances, monte à 1/10 si mère > 40 ans"
+], correct:0, exp:"La fréquence est de 1/1100 naissances en général, mais grimpe à 1/100 si l'âge maternel dépasse 40 ans."},
+
+{c:"Ch.4 — TSA", q:"Quelle est la prévalence des Troubles du Spectre de l'Autisme en Belgique et le ratio garçons/filles ?", opts:[
+  "1/50, ratio 2 garçons pour 1 fille",
+  "1/150, ratio 4 garçons pour 1 fille",
+  "1/1000, ratio 1 garçon pour 1 fille",
+  "1/500, ratio 10 garçons pour 1 fille"
+], correct:1, exp:"La prévalence des TSA en Belgique est de 1/150, avec un ratio de 4 garçons pour 1 fille. Le trouble apparaît avant 3 ans."},
+
+{c:"Ch.4 — IMOC", q:"Quel type d'IMOC (Infirmité Motrice d'Origine Cérébrale) est le plus fréquent ?", opts:[
+  "IMC ataxique (5–7%)",
+  "Tétraplégie spastique (8–32%)",
+  "Hémiplégie spastique (27–37%)",
+  "IMC dystonique/dyskinétique (4–10%)"
+], correct:2, exp:"L'hémiplégie spastique, avec atteinte d'un hémicorps, représente 27 à 37% des cas — la fréquence la plus élevée parmi les 6 types listés."},
+
+{c:"Ch.4 — Troubles d'apprentissage", q:"Quel lien existe entre dyslexie et dysorthographie ?", opts:[
+  "Ce sont deux noms pour le même trouble",
+  "La dysorthographie accompagne la dyslexie dans 2/3 des cas",
+  "Elles ne sont jamais associées",
+  "La dysorthographie précède toujours la dyslexie"
+], correct:1, exp:"La dysorthographie (trouble de la maîtrise de l'orthographe) accompagne la dyslexie dans deux tiers des cas."},
+
+{c:"Ch.4 — Déficiences motrices", q:"Une lésion de la moelle épinière entraînant une paraplégie relève d'une origine :", opts:[
+  "Cérébrale",
+  "Ostéoarticulaire",
+  "Médullaire / neuromusculaire",
+  "Écologique"
+], correct:2, exp:"Les origines médullaires/neuromusculaires regroupent les lésions de la moelle épinière (tétraplégie, paraplégie), le spina bifida et les maladies neuromusculaires génétiques évolutives."},
+
+{c:"Ch.4 — Surdité", q:"Une perte auditive de 70 à 90 dB correspond à quel niveau de surdité ?", opts:[
+  "Légère",
+  "Moyenne",
+  "Sévère",
+  "Profonde"
+], correct:2, exp:"70–90 dB = surdité sévère, pour laquelle l'appareillage est indispensable. Au-delà de 90 dB, la surdité est profonde (mutisme possible sans éducation spéciale)."},
+
+{c:"Ch.5 — Dépistage prénatal", q:"À partir de quelle semaine peut-on réaliser le TPNI (test ADN, NIPT) et que dépiste-t-il ?", opts:[
+  "Dès la 6ème semaine ; dépiste uniquement le sexe",
+  "Dès la 12ème semaine ; dépiste les trisomies 21, 18, 13 et le sexe",
+  "Dès la 20ème semaine ; dépiste les malformations cardiaques",
+  "Dès la 30ème semaine ; dépiste la mucoviscidose"
+], correct:1, exp:"Le TPNI/NIPT se fait dès la 12ème semaine, est remboursé, sans risque foetal, très performant (~100%), et dépiste les trisomies 21, 18, 13 ainsi que le sexe."},
+
+{c:"Ch.5 — Dépistage prénatal", q:"L'amniocentèse est un examen :", opts:[
+  "Non invasif, réalisé dès la 8ème semaine",
+  "Invasif, réalisé dès la 16ème semaine, avec prélèvement de liquide amniotique",
+  "Réalisé uniquement après la naissance",
+  "Sans aucun risque de fausse couche"
+], correct:1, exp:"L'amniocentèse est un examen invasif dès la 16ème semaine, avec prélèvement de 20 ml de liquide amniotique pour analyse chromosomique."},
+
+{c:"Ch.5 — Dépistage postnatal", q:"Le test de Guthrie (test du talon) se fait avant quel jour, et dépiste quelles pathologies ?", opts:[
+  "Avant le 5ème jour ; phénylcétonurie, hypothyroïdie congénitale, hyperplasie des surrénales, mucoviscidose",
+  "Avant le 30ème jour ; uniquement la surdité",
+  "Avant le 1er jour ; trisomie 21",
+  "Avant le 10ème jour ; troubles cardiaques uniquement"
+], correct:0, exp:"Le test de Guthrie se réalise avant le 5ème jour de vie et dépiste la phénylcétonurie, l'hypothyroïdie congénitale, l'hyperplasie des surrénales et la mucoviscidose."},
+
+{c:"Ch.6 — Annonce du diagnostic", q:"Combien d'étapes comporte l'annonce du diagnostic, et laquelle vient en premier ?", opts:[
+  "3 étapes, la clôture en premier",
+  "4 étapes, la préparation en premier",
+  "2 étapes, la rencontre en premier",
+  "5 étapes, le suivi en premier"
+], correct:1, exp:"L'annonce du diagnostic comporte 4 étapes : préparation (avant), rencontre (pendant), clôture (fin) et suivi (après)."},
+
+{c:"Ch.7 — IVG/IMG", q:"Depuis quand l'IVG est-elle légale en Belgique, et jusqu'à quand peut-elle être pratiquée ?", opts:[
+  "Depuis le 3 avril 1990, avant la 12ème semaine de conception (14 SA)",
+  "Depuis 2005, avant la 20ème semaine",
+  "Depuis 1970, sans limite de délai",
+  "Depuis 2007, avant la 8ème semaine"
+], correct:0, exp:"L'IVG est légale en Belgique depuis le 3 avril 1990, pour raisons non médicales, avant la 12ème semaine de conception (14 semaines d'aménorrhée)."},
+
+{c:"Ch.8 — Structures d'accueil", q:"Qu'est-ce qu'un SAJA (Service d'Accueil de Jour pour Adultes) ?", opts:[
+  "Un hébergement nocturne pour PH",
+  "Un accueil pour PH ne travaillant pas, 5j/7 de 8h30 à 16h30, avec activités variées",
+  "Un service réservé aux jeunes de 3 à 18 ans",
+  "Un encadrement thérapeutique 24h/24, 365j/an"
+], correct:1, exp:"Le SAJA accueille les personnes handicapées ne travaillant pas, 5 jours sur 7 de 8h30 à 16h30, avec des activités artistiques, de jardinage, de cuisine, etc."},
+
+{c:"Ch.8 — Structures d'accueil", q:"En Région wallonne, quel organisme agrée et subventionne les services pour personnes handicapées ?", opts:[
+  "L'ISSP",
+  "L'AViQ (Agence pour une Vie de Qualité)",
+  "FEDRIS",
+  "L'ONEM"
+], correct:1, exp:"L'AViQ agrée et subventionne les services en Région wallonne, dans le cadre de la loi du 11 février 2005 garantissant le droit à des structures adaptées."},
+
+{c:"Ch.9 — Aides financières", q:"L'allocation d'intégration s'adresse à quel public ?", opts:[
+  "Aux enfants PH de moins de 21 ans",
+  "Aux adultes de 21 à 65 ans ayant du mal à accomplir les tâches quotidiennes",
+  "Aux victimes de guerre uniquement",
+  "Aux adultes de plus de 65 ans exclusivement"
+], correct:1, exp:"L'allocation d'intégration concerne les adultes de 21 à 65 ans ayant du mal à accomplir les tâches quotidiennes (l'équivalent pour les plus de 65 ans est l'allocation aide aux personnes âgées)."},
+
+{c:"Ch.10 — Insertion professionnelle", q:"Que finance la « prime au tutorat », et pour quel montant/durée ?", opts:[
+  "750 €/trimestre pendant 6 mois, pour l'entreprise désignant un tuteur",
+  "25% du coût salarial pendant 1 an, pour l'embauche d'un travailleur PH",
+  "33% du RMMMG pendant 1 an, pour les indépendants",
+  "Frais réels, sans limite de durée"
+], correct:0, exp:"La prime au tutorat s'élève à 750 €/trimestre pendant 6 mois, versée à l'entreprise qui désigne un tuteur pour accueillir et guider le travailleur handicapé."},
+
+{c:"Ch.11 — Sport et handicap", q:"Parmi les bénéfices du sport pour la personne handicapée, lequel relève du domaine socio-psychologique plutôt que physique ?", opts:[
+  "Renforcer la musculature",
+  "Améliorer la coordination et l'équilibre",
+  "Retrouver confiance en soi et diminuer le risque de dépression",
+  "Éviter l'atrophie musculaire"
+], correct:2, exp:"Retrouver confiance en soi et diminuer le risque de dépression/anxiété sont des bénéfices socio-psychologiques, à distinguer des bénéfices physiques (musculature, coordination, atrophie...)."}
+];
+
+let order = QUESTIONS.map((_,i)=>i);
+let idx = 0;
+let score = 0;
+let missed = [];      // indices missed during first pass
+let reviewQueue = [];
+let mode = "quiz";     // quiz | review | done
+let answered = false;
+let selected = null;
+
+const root = document.getElementById('root');
+
+function currentQ(){
+  if(mode==="quiz") return QUESTIONS[order[idx]];
+  if(mode==="review") return QUESTIONS[reviewQueue[idx]];
+  return null;
+}
+function currentGlobalIndex(){
+  return mode==="quiz" ? order[idx] : reviewQueue[idx];
+}
+
+function render(){
+  if(mode==="done"){ renderEnd(); return; }
+  const q = currentQ();
+  const total = mode==="quiz" ? order.length : reviewQueue.length;
+  const pct = Math.round((idx)/total*100);
+  const letters = ['A','B','C','D'];
+
+  let html = '';
+  if(mode==="review"){
+    html += `<div class="review-banner">🔁 Reprise des questions ratées — répondez correctement pour les valider.</div>`;
+  }
+  html += `<div class="progress-row">
+      <span class="progress-label">${mode==="review"?"Révision":"Question"} ${idx+1}/${total}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  html += `<div class="card">
+      <div class="chapter">${q.c}</div>
+      <div class="question">${q.q}</div>
+      <div class="options">`;
+  q.opts.forEach((opt,i)=>{
+    let cls = "opt";
+    if(answered){
+      if(i===q.correct) cls += " correct";
+      else if(i===selected) cls += " wrong";
+      else cls += " dim";
+    }
+    html += `<button class="${cls}" data-i="${i}" ${answered?"disabled":""} onclick="handleAnswer(${i})">
+        <span class="letter">${letters[i]}</span><span>${opt}</span>
+      </button>`;
+  });
+  html += `</div>`;
+  if(answered){
+    const isCorrect = selected===q.correct;
+    html += `<div class="feedback ${isCorrect?'ok':'bad'}">
+        <div class="fb-head">${isCorrect?'Correct':'Pas tout à fait'}</div>
+        ${q.exp}
+      </div>`;
+  }
+  html += `</div>`;
+  if(answered){
+    html += `<div class="nav-row"><button class="next" onclick="nextQuestion()">Suivant →</button></div>`;
+  }
+  root.innerHTML = html;
+}
+
+function handleAnswer(i){
+  if(answered) return;
+  answered = true;
+  selected = i;
+  const q = currentQ();
+  const gIdx = currentGlobalIndex();
+  if(mode==="quiz"){
+    if(i===q.correct){ score++; }
+    else { if(!missed.includes(gIdx)) missed.push(gIdx); }
+  } else if(mode==="review"){
+    if(i!==q.correct){
+      reviewQueue.push(gIdx); // requeue at the end for another try
+    }
+  }
+  render();
+}
+
+function nextQuestion(){
+  answered = false;
+  selected = null;
+  idx++;
+  if(mode==="quiz"){
+    if(idx >= order.length){
+      if(missed.length>0){
+        mode = "review";
+        reviewQueue = missed.slice();
+        missed = [];
+        idx = 0;
+      } else {
+        mode = "done";
+      }
+    }
+  } else if(mode==="review"){
+    if(idx >= reviewQueue.length){
+      // filter out duplicates that got requeued past current pointer already counted
+      const remaining = reviewQueue.slice(idx).length; // always 0 here since we consumed
+      mode = "done";
+    }
+  }
+  render();
+}
+
+function renderEnd(){
+  const pct = Math.round(score/QUESTIONS.length*100);
+  root.innerHTML = `
+    <div class="card end-card">
+      <div class="chapter">Résultat</div>
+      <div class="end-score">${score}<span>/${QUESTIONS.length}</span></div>
+      <div class="end-msg">
+        ${pct===100 ? "Score parfait dès le premier passage — la synthèse est bien intégrée." 
+          : "Vous avez terminé le QCM. Toutes les questions ratées ont été reposées jusqu'à réponse correcte, avec leur explication."}
+      </div>
+      <button class="restart" onclick="restart()">Recommencer le QCM</button>
+    </div>`;
+}
+
+function restart(){
+  order = QUESTIONS.map((_,i)=>i);
+  // shuffle order for variety
+  for(let i=order.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  idx=0; score=0; missed=[]; reviewQueue=[]; mode="quiz"; answered=false; selected=null;
+  render();
+}
+
+restart();
+</script>
+</body>
+</html>
