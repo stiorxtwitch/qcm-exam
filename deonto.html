@@ -131,6 +131,25 @@
   .opt.wrong .letter{color:var(--bad);}
   .opt.dim{opacity:.55;}
 
+  .abstain-row{margin-top:12px;}
+  button.abstain-btn{
+    width:100%;
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-size:12.5px;
+    background:none;
+    border:1.5px dashed var(--clay);
+    color:#7a3a24;
+    border-radius:8px;
+    padding:11px 16px;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  button.abstain-btn:hover:not(:disabled){background:var(--clay-soft);}
+  button.abstain-btn:disabled{opacity:.45;cursor:default;}
+  button.abstain-btn.chosen{background:var(--clay-soft);border-style:solid;}
+
   .feedback{
     margin-top:20px;
     padding:16px 18px;
@@ -140,6 +159,7 @@
   }
   .feedback.ok{background:var(--ok-bg);border-left:4px solid var(--ok);}
   .feedback.bad{background:var(--bad-bg);border-left:4px solid var(--bad);}
+  .feedback.abst{background:var(--clay-soft);border-left:4px solid var(--clay);}
   .feedback .fb-head{
     font-family:'Courier New',monospace;
     font-size:11px;
@@ -150,6 +170,7 @@
   }
   .feedback.ok .fb-head{color:var(--ok);}
   .feedback.bad .fb-head{color:var(--bad);}
+  .feedback.abst .fb-head{color:#7a3a24;}
 
   .nav-row{
     display:flex;
@@ -178,7 +199,35 @@
     margin:6px 0;
   }
   .end-score span{font-size:22px;color:var(--ink);opacity:.6;}
-  .end-msg{font-size:16px;margin:14px 0 24px;line-height:1.5;}
+  .score-detail{
+    font-family:'Courier New',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    opacity:.7;
+    margin-bottom:18px;
+  }
+  .end-msg{font-size:16px;margin:14px 0 6px;line-height:1.5;}
+  .end-msg strong{color:var(--sage-dark);}
+
+  .weak-list{
+    text-align:left;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:16px 20px;
+    margin:18px 0 26px;
+  }
+  .weak-list h3{
+    font-family:'Courier New',monospace;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--sage-dark);
+    margin:0 0 10px;
+  }
+  .weak-list ul{margin:0;padding-left:20px;}
+  .weak-list li{margin-bottom:5px;font-size:14.5px;line-height:1.4;}
+
   .restart{
     font-family:'Courier New',monospace;
     text-transform:uppercase;
@@ -458,24 +507,49 @@ const QUESTIONS = [
 
 ];
 
-let order = QUESTIONS.map((_,i)=>i);
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let order = [];           // shuffled global indices for the first pass
 let idx = 0;
-let score = 0;
-let missed = [];      // indices missed during first pass
-let reviewQueue = [];
-let mode = "quiz";     // quiz | review | done
+let mode = "quiz";         // quiz | review | done
 let answered = false;
-let selected = null;
+let selected = null;       // displayed index (number) or 'abstain'
+let optionOrder = [];      // shuffled original option indices for the current question
+
+let missed = [];           // global indices to send to review (wrong OR abstained)
+let reviewQueue = [];
+let results = {};          // globalIndex -> 'correct' | 'wrong' | 'abstained' — FIRST PASS ONLY (used for scoring)
 
 const root = document.getElementById('root');
 
-function currentQ(){
-  if(mode==="quiz") return QUESTIONS[order[idx]];
-  if(mode==="review") return QUESTIONS[reviewQueue[idx]];
-  return null;
-}
 function currentGlobalIndex(){
   return mode==="quiz" ? order[idx] : reviewQueue[idx];
+}
+function currentQ(){
+  return QUESTIONS[currentGlobalIndex()];
+}
+
+function prepareQuestion(){
+  const q = currentQ();
+  optionOrder = shuffleArray(q.opts.map((_,i)=>i)); // les réponses changent de position à chaque affichage
+  answered = false;
+  selected = null;
+}
+
+function liveScore(){
+  let raw = 0;
+  Object.values(results).forEach(r=>{
+    if(r==='correct') raw += 1;
+    else if(r==='wrong') raw -= 0.5;
+  });
+  return raw;
 }
 
 function render(){
@@ -487,32 +561,39 @@ function render(){
 
   let html = '';
   if(mode==="review"){
-    html += `<div class="review-banner">🔁 Reprise des questions ratées — répondez correctement pour les valider.</div>`;
+    html += `<div class="review-banner">🔁 Reprise des questions ratées / abstenues — répondez correctement pour les valider.</div>`;
   }
   html += `<div class="progress-row">
       <span class="progress-label">${mode==="review"?"Révision":"Question"} ${idx+1}/${total}</span>
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      ${mode==="quiz" ? `<span class="progress-label">Points : ${liveScore()}</span>` : ''}
     </div>`;
   html += `<div class="card">
       <div class="chapter">${q.c}</div>
       <div class="question">${q.q}</div>
       <div class="options">`;
-  q.opts.forEach((opt,i)=>{
+  optionOrder.forEach((originalI, displayedI)=>{
     let cls = "opt";
     if(answered){
-      if(i===q.correct) cls += " correct";
-      else if(i===selected) cls += " wrong";
+      if(originalI===q.correct) cls += " correct";
+      else if(displayedI===selected) cls += " wrong";
       else cls += " dim";
     }
-    html += `<button class="${cls}" data-i="${i}" ${answered?"disabled":""} onclick="handleAnswer(${i})">
-        <span class="letter">${letters[i]}</span><span>${opt}</span>
+    html += `<button class="${cls}" ${answered?"disabled":""} onclick="handleAnswer(${displayedI})">
+        <span class="letter">${letters[displayedI]}</span><span>${q.opts[originalI]}</span>
       </button>`;
   });
   html += `</div>`;
+  html += `<div class="abstain-row">
+      <button class="abstain-btn ${selected==='abstain'?'chosen':''}" ${answered?"disabled":""} onclick="handleAbstain()">Je m'abstiens</button>
+    </div>`;
   if(answered){
-    const isCorrect = selected===q.correct;
-    html += `<div class="feedback ${isCorrect?'ok':'bad'}">
-        <div class="fb-head">${isCorrect?'Correct':'Pas tout à fait'}</div>
+    const isAbstain = selected==='abstain';
+    const isCorrect = !isAbstain && optionOrder[selected]===q.correct;
+    const fbClass = isAbstain ? 'abst' : (isCorrect ? 'ok' : 'bad');
+    const fbHead = isAbstain ? 'Abstention (0 pt)' : (isCorrect ? 'Correct (+1 pt)' : 'Pas tout à fait (−0.5 pt)');
+    html += `<div class="feedback ${fbClass}">
+        <div class="fb-head">${fbHead}</div>
         ${q.exp}
       </div>`;
   }
@@ -523,26 +604,37 @@ function render(){
   root.innerHTML = html;
 }
 
-function handleAnswer(i){
+function handleAnswer(displayedI){
   if(answered) return;
   answered = true;
-  selected = i;
+  selected = displayedI;
   const q = currentQ();
   const gIdx = currentGlobalIndex();
+  const isCorrect = optionOrder[displayedI]===q.correct;
   if(mode==="quiz"){
-    if(i===q.correct){ score++; }
-    else { if(!missed.includes(gIdx)) missed.push(gIdx); }
+    results[gIdx] = isCorrect ? 'correct' : 'wrong';
+    if(!isCorrect && !missed.includes(gIdx)) missed.push(gIdx);
   } else if(mode==="review"){
-    if(i!==q.correct){
-      reviewQueue.push(gIdx); // requeue at the end for another try
-    }
+    if(!isCorrect) reviewQueue.push(gIdx);
+  }
+  render();
+}
+
+function handleAbstain(){
+  if(answered) return;
+  answered = true;
+  selected = 'abstain';
+  const gIdx = currentGlobalIndex();
+  if(mode==="quiz"){
+    results[gIdx] = 'abstained';
+    if(!missed.includes(gIdx)) missed.push(gIdx);
+  } else if(mode==="review"){
+    reviewQueue.push(gIdx);
   }
   render();
 }
 
 function nextQuestion(){
-  answered = false;
-  selected = null;
   idx++;
   if(mode==="quiz"){
     if(idx >= order.length){
@@ -551,39 +643,81 @@ function nextQuestion(){
         reviewQueue = missed.slice();
         missed = [];
         idx = 0;
+        prepareQuestion();
       } else {
         mode = "done";
       }
+    } else {
+      prepareQuestion();
     }
   } else if(mode==="review"){
     if(idx >= reviewQueue.length){
       mode = "done";
+    } else {
+      prepareQuestion();
     }
   }
   render();
 }
 
+function buildChapterList(chapters){
+  if(chapters.length===0) return '';
+  const items = chapters.map(c=>`<li>${c}</li>`).join('');
+  return `<div class="weak-list"><h3>Chapitres à relire</h3><ul>${items}</ul></div>`;
+}
+
 function renderEnd(){
-  const pct = Math.round(score/QUESTIONS.length*100);
+  const n = QUESTIONS.length;
+  let correct=0, wrong=0, abstained=0;
+  const wrongChapters = new Set();
+  const abstainedChapters = new Set();
+  Object.keys(results).forEach(k=>{
+    const r = results[k];
+    const q = QUESTIONS[k];
+    if(r==='correct') correct++;
+    else if(r==='wrong'){ wrong++; wrongChapters.add(q.c); }
+    else if(r==='abstained'){ abstained++; abstainedChapters.add(q.c); }
+  });
+  const raw = correct*1 + wrong*(-0.5) + abstained*0;
+  const score20 = Math.round((raw/n*20)*10)/10;
+
+  let title, msg, chaptersToShow = [];
+  if(score20 < 10.5){
+    title = "À retravailler";
+    msg = "Vous êtes en dessous de la moyenne. Relisez les chapitres liés aux questions ratées et à celles où vous vous êtes abstenu(e) avant l'examen.";
+    chaptersToShow = [...new Set([...wrongChapters, ...abstainedChapters])];
+  } else if(wrong>0){
+    title = "Très bien !";
+    msg = "Vous avez la moyenne, mais quelques points méritent encore d'être relus avant l'examen :";
+    chaptersToShow = [...new Set([...wrongChapters, ...abstainedChapters])];
+  } else if(abstained>0){
+    title = "Excellent !";
+    msg = "Vous êtes prêt(e) pour l'examen. Faites tout de même attention aux points suivants, sur lesquels vous avez hésité :";
+    chaptersToShow = [...abstainedChapters];
+  } else {
+    title = "Score parfait !";
+    msg = "Score parfait dès le premier passage, sans aucune hésitation — la synthèse est bien intégrée. Vous êtes prêt(e) pour l'examen.";
+  }
+
   root.innerHTML = `
     <div class="card end-card">
       <div class="chapter">Résultat</div>
-      <div class="end-score">${score}<span>/${QUESTIONS.length}</span></div>
-      <div class="end-msg">
-        ${pct===100 ? "Score parfait dès le premier passage — la synthèse est bien intégrée." 
-          : "Vous avez terminé le QCM. Toutes les questions ratées ont été reposées jusqu'à réponse correcte, avec leur explication."}
-      </div>
+      <div class="end-score">${score20}<span>/20</span></div>
+      <div class="score-detail">${correct} correcte(s) · ${wrong} incorrecte(s) · ${abstained} abstention(s) — soit ${raw} pt(s) sur ${n}</div>
+      <div class="end-msg"><strong>${title}</strong><br>${msg}</div>
+      ${buildChapterList(chaptersToShow)}
       <button class="restart" onclick="restart()">Recommencer le QCM</button>
     </div>`;
 }
 
 function restart(){
-  order = QUESTIONS.map((_,i)=>i);
-  for(let i=order.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [order[i],order[j]]=[order[j],order[i]];
-  }
-  idx=0; score=0; missed=[]; reviewQueue=[]; mode="quiz"; answered=false; selected=null;
+  order = shuffleArray(QUESTIONS.map((_,i)=>i));
+  idx=0;
+  mode="quiz";
+  missed=[];
+  reviewQueue=[];
+  results={};
+  prepareQuestion();
   render();
 }
 
