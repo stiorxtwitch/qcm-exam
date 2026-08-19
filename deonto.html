@@ -251,6 +251,49 @@
     margin-bottom:16px;
     color:#7a3a24;
   }
+
+  .card{position:relative;}
+  #draw-canvas{
+    position:absolute;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    touch-action:none;
+    z-index:5;
+    border-radius:10px;
+    pointer-events:none;
+  }
+
+  .tools-dock{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    z-index:50;
+  }
+  .tool-btn{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    cursor:pointer;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    background:#fff;
+    color:var(--sage-dark);
+    border:1.5px solid var(--line);
+    transition:background .15s, transform .12s, color .15s, border-color .15s;
+  }
+  .tool-btn:hover{transform:scale(1.06);}
+  .tool-btn.active{
+    background:var(--clay);
+    color:#fff;
+    border-color:var(--clay);
+  }
 </style>
 </head>
 <body>
@@ -262,6 +305,10 @@
     </div>
   </header>
   <div id="root"></div>
+  <div class="tools-dock">
+    <button class="tool-btn" id="pen-toggle-btn" onclick="togglePen()" title="Surligner">🖊️</button>
+    <button class="tool-btn" id="clear-draw-btn" onclick="clearDrawing()" title="Effacer le surlignage">🧹</button>
+  </div>
 </div>
 
 <script>
@@ -527,6 +574,13 @@ let missed = [];           // global indices to send to review (wrong OR abstain
 let reviewQueue = [];
 let results = {};          // globalIndex -> 'correct' | 'wrong' | 'abstained' — FIRST PASS ONLY (used for scoring)
 
+// --- Surligneur ---
+let drawMode = false;
+let strokes = [];          // traits du surlignage pour la question affichée
+let currentStroke = null;
+let canvasEl = null;
+let canvasCtx = null;
+
 const root = document.getElementById('root');
 
 function currentGlobalIndex(){
@@ -541,7 +595,79 @@ function prepareQuestion(){
   optionOrder = shuffleArray(q.opts.map((_,i)=>i)); // les réponses changent de position à chaque affichage
   answered = false;
   selected = null;
+  strokes = [];
+  currentStroke = null;
 }
+
+function initCanvas(){
+  canvasEl = document.getElementById('draw-canvas');
+  if(!canvasEl){ canvasCtx = null; return; }
+  const card = canvasEl.parentElement;
+  const rect = card.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvasEl.width = Math.max(1, rect.width * dpr);
+  canvasEl.height = Math.max(1, rect.height * dpr);
+  canvasEl.style.width = rect.width + 'px';
+  canvasEl.style.height = rect.height + 'px';
+  canvasCtx = canvasEl.getContext('2d');
+  canvasCtx.setTransform(dpr,0,0,dpr,0,0);
+  canvasCtx.lineJoin = 'round';
+  canvasCtx.lineCap = 'round';
+  canvasEl.style.pointerEvents = drawMode ? 'auto' : 'none';
+
+  canvasEl.onpointerdown = function(e){
+    if(!drawMode) return;
+    const r = canvasEl.getBoundingClientRect();
+    currentStroke = [{x:e.clientX-r.left, y:e.clientY-r.top}];
+    strokes.push(currentStroke);
+    canvasEl.setPointerCapture(e.pointerId);
+  };
+  canvasEl.onpointermove = function(e){
+    if(!drawMode || !currentStroke) return;
+    const r = canvasEl.getBoundingClientRect();
+    currentStroke.push({x:e.clientX-r.left, y:e.clientY-r.top});
+    redrawStrokes();
+  };
+  canvasEl.onpointerup = function(){ currentStroke = null; };
+  canvasEl.onpointercancel = function(){ currentStroke = null; };
+  canvasEl.onpointerleave = function(){ currentStroke = null; };
+
+  redrawStrokes();
+}
+
+function redrawStrokes(){
+  if(!canvasCtx || !canvasEl) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvasCtx.clearRect(0, 0, canvasEl.width/dpr, canvasEl.height/dpr);
+  canvasCtx.strokeStyle = 'rgba(255, 209, 0, 0.55)';
+  canvasCtx.lineWidth = 16;
+  strokes.forEach(function(stroke){
+    if(stroke.length < 2) return;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(stroke[0].x, stroke[0].y);
+    for(let i=1;i<stroke.length;i++){
+      canvasCtx.lineTo(stroke[i].x, stroke[i].y);
+    }
+    canvasCtx.stroke();
+  });
+}
+
+function clearDrawing(){
+  strokes = [];
+  currentStroke = null;
+  redrawStrokes();
+}
+
+function togglePen(){
+  drawMode = !drawMode;
+  const btn = document.getElementById('pen-toggle-btn');
+  if(btn) btn.classList.toggle('active', drawMode);
+  if(canvasEl) canvasEl.style.pointerEvents = drawMode ? 'auto' : 'none';
+}
+
+window.addEventListener('resize', function(){
+  if(canvasEl){ clearDrawing(); initCanvas(); }
+});
 
 function liveScore(){
   let raw = 0;
@@ -597,17 +723,20 @@ function render(){
         ${q.exp}
       </div>`;
   }
+  html += `<canvas id="draw-canvas"></canvas>`;
   html += `</div>`;
   if(answered){
     html += `<div class="nav-row"><button class="next" onclick="nextQuestion()">Suivant →</button></div>`;
   }
   root.innerHTML = html;
+  initCanvas();
 }
 
 function handleAnswer(displayedI){
   if(answered) return;
   answered = true;
   selected = displayedI;
+  clearDrawing();
   const q = currentQ();
   const gIdx = currentGlobalIndex();
   const isCorrect = optionOrder[displayedI]===q.correct;
@@ -624,6 +753,7 @@ function handleAbstain(){
   if(answered) return;
   answered = true;
   selected = 'abstain';
+  clearDrawing();
   const gIdx = currentGlobalIndex();
   if(mode==="quiz"){
     results[gIdx] = 'abstained';
