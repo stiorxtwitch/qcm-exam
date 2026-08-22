@@ -79,6 +79,7 @@
   }
 
   .card{
+    position:relative;
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:10px;
@@ -134,6 +135,25 @@
   .opt.wrong .letter{color:var(--bad);}
   .opt.dim{opacity:.55;}
 
+  .abstain-row{margin-top:12px;}
+  button.abstain-btn{
+    width:100%;
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-size:12.5px;
+    background:none;
+    border:1.5px dashed var(--clay);
+    color:#7a3a24;
+    border-radius:8px;
+    padding:11px 16px;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  button.abstain-btn:hover:not(:disabled){background:var(--clay-soft);}
+  button.abstain-btn:disabled{opacity:.45;cursor:default;}
+  button.abstain-btn.chosen{background:var(--clay-soft);border-style:solid;}
+
   .feedback{
     margin-top:20px;
     padding:16px 18px;
@@ -143,6 +163,7 @@
   }
   .feedback.ok{background:var(--ok-bg);border-left:4px solid var(--ok);}
   .feedback.bad{background:var(--bad-bg);border-left:4px solid var(--bad);}
+  .feedback.abst{background:var(--clay-soft);border-left:4px solid var(--clay);}
   .feedback .fb-head{
     font-family:'Courier New',monospace;
     font-size:11px;
@@ -153,6 +174,7 @@
   }
   .feedback.ok .fb-head{color:var(--ok);}
   .feedback.bad .fb-head{color:var(--bad);}
+  .feedback.abst .fb-head{color:#7a3a24;}
 
   .nav-row{
     display:flex;
@@ -181,7 +203,35 @@
     margin:6px 0;
   }
   .end-score span{font-size:22px;color:var(--ink);opacity:.6;}
-  .end-msg{font-size:16px;margin:14px 0 24px;line-height:1.5;}
+  .score-detail{
+    font-family:'Courier New',monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    opacity:.7;
+    margin-bottom:18px;
+  }
+  .end-msg{font-size:16px;margin:14px 0 6px;line-height:1.5;}
+  .end-msg strong{color:var(--sage-dark);}
+
+  .weak-list{
+    text-align:left;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:16px 20px;
+    margin:18px 0 26px;
+  }
+  .weak-list h3{
+    font-family:'Courier New',monospace;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--sage-dark);
+    margin:0 0 10px;
+  }
+  .weak-list ul{margin:0;padding-left:20px;}
+  .weak-list li{margin-bottom:5px;font-size:14.5px;line-height:1.4;}
+
   .restart{
     font-family:'Courier New',monospace;
     text-transform:uppercase;
@@ -206,6 +256,48 @@
     color:#7a3a24;
   }
 
+  #draw-canvas{
+    position:absolute;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    touch-action:none;
+    z-index:5;
+    border-radius:10px;
+    pointer-events:none;
+  }
+
+  .tools-dock{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    z-index:50;
+  }
+  .tool-btn{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    cursor:pointer;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    background:#fff;
+    color:var(--sage-dark);
+    border:1.5px solid var(--line);
+    transition:background .15s, transform .12s, color .15s, border-color .15s;
+  }
+  .tool-btn:hover{transform:scale(1.06);}
+  .tool-btn.active{
+    background:var(--clay);
+    color:#fff;
+    border-color:var(--clay);
+  }
+
   @media (max-width:420px){
     .options{flex-direction:column;}
   }
@@ -220,6 +312,10 @@
     </div>
   </header>
   <div id="root"></div>
+  <div class="tools-dock">
+    <button class="tool-btn" id="pen-toggle-btn" onclick="togglePen()" title="Surligner">🖊️</button>
+    <button class="tool-btn" id="clear-draw-btn" onclick="clearDrawing()" title="Effacer le surlignage">🧹</button>
+  </div>
 </div>
 
 <script>
@@ -229,7 +325,7 @@ const QUESTIONS = [
 // ===== PARTIE 1 — DU SIMPLE AU COMPLEXE =====
 {c:"P.1 — Origine de la vie", q:"L'univers actuel s'est formé il y a environ 13 milliards d'années, et le système solaire environ 4,5 milliards d'années.", correct:true, exp:"Exact : la chronologie du cours situe la formation de l'univers actuel (Big Bang) à ~13 milliards d'années, et celle du système solaire/de la Terre à 4,5 milliards d'années."},
 
-{c:"P.1 — Origine de la vie", q:"La cellule procaryote serait apparue avant la cellule eucaryote au cours de l'évolution.", correct:true, exp:"Exact : l'évolution biochimique (4,5 → 3,5 Mrd d'années) fait émerger la cellule procaryote, puis l'évolution biologique (3,5 → 1,5 Mrd d'années) fait émerger la cellule eucaryote."},
+{c:"P.1 — Origine de la vie", q:"Il n'est pas exact d'affirmer que la cellule procaryote ne serait jamais apparue avant la cellule eucaryote au cours de l'évolution.", correct:true, exp:"En levant la double négation (« il n'est pas exact que X ne serait JAMAIS apparu avant Y » = « X est bien apparu avant Y »), on retrouve le fait correct : la cellule procaryote est bien apparue avant la cellule eucaryote. L'évolution biochimique (4,5 → 3,5 Mrd d'années) fait émerger la cellule procaryote, puis l'évolution biologique (3,5 → 1,5 Mrd d'années) fait émerger la cellule eucaryote."},
 
 {c:"P.1 — Grande oxydation", q:"La grande oxydation, entre 3,5 et 1,5 milliards d'années, n'a eu que des conséquences positives pour la vie sur Terre.", correct:false, exp:"Faux : elle a aussi eu une conséquence négative, la disparition des espèces non adaptées à l'oxygène, en plus des conséquences positives (vie multicellulaire, métabolisme aérobie bien plus efficace : 36-38 ATP contre 2 en anaérobie)."},
 
@@ -243,11 +339,11 @@ const QUESTIONS = [
 
 {c:"P.1 — Lipides", q:"Le rapport oméga-3/oméga-6 idéal est de 1/5, mais il est en réalité plutôt de 1/10 en Europe et 1/17 aux USA.", correct:true, exp:"Exact : ce déséquilibre, avec un excès d'oméga-6, favorise un terrain inflammatoire chronique et les maladies de civilisation."},
 
-{c:"P.1 — Cholestérol", q:"Le HDL, appelé « bon cholestérol », s'accumule sur les parois artérielles pour former des plaques d'athérome.", correct:false, exp:"Faux : c'est le rôle du LDL (« mauvais cholestérol »). Le HDL, au contraire, récupère le cholestérol dans les organes pour le ramener au foie et nettoie les artères."},
+{c:"P.1 — Cholestérol", q:"Il n'est pas exact d'affirmer que le HDL, appelé « bon cholestérol », ne s'accumule jamais sur les parois artérielles pour former des plaques d'athérome.", correct:false, exp:"En levant la double négation (« il n'est pas exact que X ne s'accumule JAMAIS » = « X s'accumule parfois »), l'affirmation prétendrait que le HDL forme des plaques d'athérome — c'est faux, c'est le rôle du LDL (« mauvais cholestérol »). Le HDL, au contraire, récupère le cholestérol dans les organes pour le ramener au foie et nettoie les artères."},
 
 {c:"P.1 — Cholestérol", q:"Environ 70% du cholestérol de l'organisme est d'origine endogène, principalement produit par le foie.", correct:true, exp:"Exact : 70% du cholestérol est endogène (synthèse hépatique), le reste provenant de l'alimentation."},
 
-{c:"P.1 — Glucides", q:"L'insuline est une hormone hyperglycémiante, tandis que le glucagon est hypoglycémiant.", correct:false, exp:"Faux : c'est l'inverse — l'insuline est hypoglycémiante (fait baisser la glycémie), le glucagon est hyperglycémiant. Tous deux sont sécrétés par le pancréas."},
+{c:"P.1 — Glucides", q:"Il n'est pas exact d'affirmer que l'insuline n'est jamais une hormone hyperglycémiante, tandis que le glucagon ne serait jamais hypoglycémiant.", correct:false, exp:"En levant la double négation, l'affirmation prétendrait que l'insuline est parfois hyperglycémiante et le glucagon parfois hypoglycémiant — c'est faux : l'insuline est hypoglycémiante (elle fait baisser la glycémie), le glucagon est hyperglycémiant. Tous deux sont sécrétés par le pancréas."},
 
 {c:"P.1 — Diabète", q:"Le diabète de type 1 correspond à une insulinorésistance des cellules, alors que le diabète de type 2 correspond à une production d'insuline insuffisante.", correct:false, exp:"Faux : c'est l'inverse — le type 1 est insulinodépendant (production insuffisante d'insuline), le type 2 correspond à une insulinorésistance (insuline produite mais moins efficace)."},
 
@@ -256,13 +352,13 @@ const QUESTIONS = [
 {c:"P.1 — Chaperonnes", q:"Les chaperonnes (Heat Shock Proteins), qui réparent les protéines dénaturées, sont sous-exprimées dans les cellules cancéreuses.", correct:false, exp:"Faux : les chaperonnes sont au contraire surexprimées dans les cancers."},
 
 // ===== PARTIE 2 — DE LA VIE À LA MORT =====
-{c:"P.2 — Cytosquelette", q:"Les microfilaments d'actine (7 nm) ont un diamètre plus grand que les microtubules (25 nm).", correct:false, exp:"Faux : c'est l'inverse — les microtubules (25 nm, tubuline α/β) sont plus larges que les microfilaments d'actine (7 nm)."},
+{c:"P.2 — Cytosquelette", q:"Il n'est pas exact d'affirmer que les microfilaments d'actine (7 nm) n'ont jamais un diamètre plus grand que les microtubules (25 nm).", correct:false, exp:"En levant la double négation, l'affirmation prétendrait que les microfilaments d'actine ont parfois un diamètre plus grand que les microtubules — c'est faux : les microtubules (25 nm, tubuline α/β) sont toujours plus larges que les microfilaments d'actine (7 nm)."},
 
 {c:"P.2 — Cytosquelette", q:"Les microtubules, composés de tubuline α et β, forment notamment le fuseau mitotique et les centrioles.", correct:true, exp:"Exact : les microtubules interviennent dans le fuseau mitotique, les centrioles (centrosome), les flagelles et les cils."},
 
 {c:"P.2 — Membrane", q:"La membrane plasmique est une bicouche phospholipidique composée d'environ 50% de lipides et 50% de protéines.", correct:true, exp:"Exact : cette composition, associée au cholestérol qui régule la fluidité membranaire, caractérise la membrane plasmique."},
 
-{c:"P.2 — Membrane", q:"Le glycocalyx (cell coat), qui détermine notamment les groupes sanguins ABO, se situe sur la face interne (cytoplasmique) de la membrane.", correct:false, exp:"Faux : le glycocalyx se situe sur la face EXTERNE de la membrane plasmique ; il protège la cellule et est le lieu d'activité enzymatique."},
+{c:"P.2 — Membrane", q:"Il n'est pas exact d'affirmer que le glycocalyx (cell coat), qui détermine notamment les groupes sanguins ABO, ne se situe jamais sur la face interne (cytoplasmique) de la membrane.", correct:false, exp:"En levant la double négation, l'affirmation prétendrait que le glycocalyx se situe parfois sur la face interne — c'est faux : il se situe toujours sur la face EXTERNE de la membrane plasmique, où il protège la cellule et sert de lieu d'activité enzymatique."},
 
 {c:"P.2 — Transport", q:"La pompe Na⁺/K⁺ est un transport actif qui consomme 3 ATP et fait sortir 3 ions Na⁺ tout en faisant entrer 2 ions K⁺.", correct:true, exp:"Exact : c'est un transport actif (contre le gradient de concentration) : 3 Na⁺ sortent, 2 K⁺ entrent, pour un coût de 3 ATP."},
 
@@ -278,7 +374,7 @@ const QUESTIONS = [
 
 {c:"P.2 — Organites", q:"L'appareil de Golgi assure la synthèse initiale des protéines par les ribosomes, tandis que le réticulum endoplasmique rugueux assure leur maturation.", correct:false, exp:"Faux : c'est l'inverse — le RE rugueux synthétise et stocke les protéines (via ses ribosomes) ; l'appareil de Golgi assure ensuite leur maturation (glycosylation, phosphorylation)."},
 
-{c:"P.2 — Organites", q:"Les mitochondries possèdent un ADN circulaire d'origine bactérienne, ce qui s'explique par la théorie de l'endosymbiose.", correct:true, exp:"Exact : les mitochondries ont une double membrane et un ADN circulaire de type bactérien, hérité d'une ancienne bactérie symbiotique (endosymbiose)."},
+{c:"P.2 — Organites", q:"Il n'est pas exact d'affirmer que les mitochondries ne posséderaient jamais un ADN circulaire d'origine bactérienne, ce qui s'expliquerait par la théorie de l'endosymbiose.", correct:true, exp:"En levant la double négation, on retrouve le fait correct : les mitochondries possèdent bien une double membrane et un ADN circulaire de type bactérien, hérité d'une ancienne bactérie symbiotique (endosymbiose)."},
 
 {c:"P.2 — Cycle cellulaire", q:"La phase S du cycle cellulaire correspond à la réplication de l'ADN, tandis que la phase G0 correspond à un état de quiescence réversible.", correct:true, exp:"Exact : la phase S (7,5h) est celle de la réplication de l'ADN (hélicase, ADN polymérase) ; G0 est une sortie du cycle avec capacité de reprise."},
 
@@ -293,7 +389,7 @@ const QUESTIONS = [
 {c:"P.2 — Cascade tumorale", q:"Le gène TP53 est un proto-oncogène qui favorise la prolifération tumorale lorsqu'il est surexprimé.", correct:false, exp:"Faux : TP53 est un gène SUPPRESSEUR de tumeur (anti-oncogène) qui surveille les points de contrôle du cycle. Ce sont RAS et Bcl-2 qui sont des proto-oncogènes favorisant la cascade tumorale."},
 
 // ===== PARTIE 3 — DE L'ÉNERGIE POUR LA VIE =====
-{c:"P.3 — Bilan énergétique", q:"La respiration aérobie complète d'une molécule de glucose produit entre 36 et 38 molécules d'ATP, contre seulement 2 ATP en anaérobiose.", correct:true, exp:"Exact : glycolyse + cycle de Krebs + chaîne respiratoire donnent 36-38 ATP en aérobiose, contre 2 ATP directs seulement en anaérobiose."},
+{c:"P.3 — Bilan énergétique", q:"Il n'est pas exact d'affirmer que la respiration aérobie complète d'une molécule de glucose ne produirait jamais entre 36 et 38 molécules d'ATP, contre seulement 2 ATP en anaérobiose.", correct:true, exp:"En levant la double négation, on retrouve le fait correct : glycolyse + cycle de Krebs + chaîne respiratoire donnent bien 36-38 ATP en aérobiose, contre 2 ATP directs seulement en anaérobiose."},
 
 {c:"P.3 — Glycolyse", q:"La glycolyse se déroule dans la matrice mitochondriale et nécessite la présence d'oxygène pour produire ses 2 ATP directs.", correct:false, exp:"Faux : la glycolyse se déroule dans le CYTOPLASME, et ses 2 ATP directs sont produits même en l'absence d'oxygène (anaérobiose)."},
 
@@ -301,7 +397,7 @@ const QUESTIONS = [
 
 {c:"P.3 — Chaîne respiratoire", q:"Dans la chaîne respiratoire, chaque NADH₂ oxydé produit environ 3 ATP, contre 2 ATP pour chaque FADH₂.", correct:true, exp:"Exact : NADH₂ → environ 3 ATP ; FADH₂ → environ 2 ATP, via la phosphorylation oxydative sur les crêtes mitochondriales."},
 
-{c:"P.3 — Chaîne respiratoire", q:"Dans la chaîne respiratoire, l'oxygène agit comme donneur d'électrons initial, tandis que le glucose est l'accepteur final formant de l'eau.", correct:false, exp:"Faux : c'est l'inverse — l'oxygène est l'accepteur final des électrons (formant H₂O) ; les électrons proviennent du NADH₂/FADH₂ issus du catabolisme du glucose."},
+{c:"P.3 — Chaîne respiratoire", q:"Il n'est pas exact d'affirmer que l'oxygène n'agit jamais comme donneur d'électrons initial, et que le glucose ne serait jamais l'accepteur final formant de l'eau, dans la chaîne respiratoire.", correct:false, exp:"En levant la double négation, l'affirmation prétendrait que l'oxygène agit parfois comme donneur initial et le glucose comme accepteur final — c'est faux : c'est l'inverse, l'oxygène est l'accepteur final des électrons (formant H₂O), et les électrons proviennent du NADH₂/FADH₂ issus du catabolisme du glucose."},
 
 {c:"P.3 — Thermogenèse", q:"Les protéines de découplage (UCP), présentes dans les adipocytes bruns, permettent de produire de la chaleur sans produire d'ATP.", correct:true, exp:"Exact : les UCP découplent le gradient de protons de la synthèse d'ATP, produisant de la chaleur (thermogenèse) au lieu d'ATP."},
 
@@ -311,7 +407,7 @@ const QUESTIONS = [
 
 {c:"P.3 — Lipides", q:"La β-oxydation des acides gras se déroule dans le cytoplasme et ne nécessite pas de transporteur particulier pour entrer dans la cellule.", correct:false, exp:"Faux : la β-oxydation (hélice de Lynen) se déroule dans les MITOCHONDRIES et nécessite la carnitine comme navette pour traverser la membrane mitochondriale interne."},
 
-{c:"P.3 — Néoglucogenèse", q:"La néoglucogenèse est principalement un processus hépatique, activé par l'insuline et inhibé par le glucagon et le cortisol.", correct:false, exp:"Faux : c'est l'inverse — la néoglucogenèse (90% hépatique) est activée par le glucagon et le cortisol, et inhibée par l'insuline."},
+{c:"P.3 — Néoglucogenèse", q:"Il n'est pas exact d'affirmer que la néoglucogenèse n'est jamais activée par l'insuline, ni jamais inhibée par le glucagon et le cortisol.", correct:false, exp:"En levant la double négation, l'affirmation prétendrait que l'insuline active parfois la néoglucogenèse et que le glucagon/cortisol l'inhibent parfois — c'est faux : c'est l'inverse, la néoglucogenèse (90% hépatique) est activée par le glucagon et le cortisol, et inhibée par l'insuline."},
 
 {c:"P.3 — Néoglucogenèse", q:"Environ 50% du glucose produit par néoglucogenèse provient d'acides aminés glucoformateurs, notamment l'alanine.", correct:true, exp:"Exact : la stratégie 1 (50%) utilise les acides aminés glucoformateurs, dont l'alanine, désaminés puis intégrés au cycle de Krebs pour former du glucose."},
 
@@ -330,7 +426,7 @@ const QUESTIONS = [
 {c:"P.3 — Radicaux libres", q:"Le stress oxydant correspond à un déséquilibre entre pro-oxydants et antioxydants, pouvant mener à la sénescence puis à l'apoptose de la cellule.", correct:true, exp:"Exact : lorsque les pro-oxydants dépassent les capacités des antioxydants (primaires : enzymes/cofacteurs ; secondaires : glutathion, vitamines A/C/E), un stress oxydant s'installe, menant à la sénescence puis à l'apoptose."},
 
 // ===== PARTIE 4 — DU GÈNE BAVARD AU GÈNE ZOMBIE =====
-{c:"P.4 — Dogme central", q:"Selon le dogme central de la biologie moléculaire, le gène (ADN) quitte le noyau pour aller directement former une protéine dans le cytoplasme.", correct:false, exp:"Faux : le gène ne quitte JAMAIS le noyau. C'est une copie du gène, l'ARN messager, qui est envoyée au cytoplasme pour y être traduite en protéine."},
+{c:"P.4 — Dogme central", q:"Il n'est pas exact d'affirmer que le gène (ADN), selon le dogme central de la biologie moléculaire, ne quitte jamais le noyau pour aller directement former une protéine dans le cytoplasme.", correct:false, exp:"En levant la double négation, l'affirmation prétendrait que le gène quitte parfois le noyau pour former directement une protéine — c'est faux : le gène ne quitte JAMAIS le noyau. C'est une copie du gène, l'ARN messager, qui est envoyée au cytoplasme pour y être traduite en protéine."},
 
 {c:"P.4 — Transcription", q:"L'ARN polymérase se fixe sur le promoteur d'un gène pour réaliser sa transcription en ARN pré-messager.", correct:true, exp:"Exact : l'ARN polymérase se fixe sur le promoteur et copie le brin transcrit (matrice, brin –) en ARN pré-messager, complémentaire de ce brin."},
 
@@ -338,11 +434,11 @@ const QUESTIONS = [
 
 {c:"P.4 — Traduction", q:"Le code génétique comprend 64 codons pour coder 20 acides aminés, et ce code est universel chez les virus, procaryotes et eucaryotes.", correct:true, exp:"Exact : les 64 codons (triplets) codent 20 acides aminés selon un code génétique universel, partagé par virus, procaryotes et eucaryotes."},
 
-{c:"P.4 — Traduction", q:"Le codon d'initiation de la traduction est un codon STOP, reconnu par l'anticodon AUG.", correct:false, exp:"Faux : le codon d'initiation est AUG (méthionine), reconnu par l'anticodon UAC. Un codon STOP marque au contraire la TERMINAISON de la traduction."},
+{c:"P.4 — Traduction", q:"Il n'est pas exact d'affirmer que le codon d'initiation de la traduction ne serait jamais un codon STOP.", correct:false, exp:"En levant la double négation, l'affirmation prétendrait que le codon d'initiation est parfois un codon STOP — c'est faux : le codon d'initiation est AUG (méthionine), reconnu par l'anticodon UAC. Un codon STOP marque au contraire la TERMINAISON de la traduction, jamais son initiation."},
 
 {c:"P.4 — Épigénétique", q:"L'épigénétique étudie des changements réversibles et héritables de l'expression des gènes, sans modification de la séquence d'ADN elle-même.", correct:true, exp:"Exact : c'est la définition même de l'épigénétique, qui inclut notamment la méthylation de l'ADN, avec environ 1 milliard de (dé)méthylations par seconde dans une cellule."},
 
-{c:"P.4 — Méthylation", q:"La méthylation de l'ADN sur la cytosine active l'expression d'un gène en le transformant en euchromatine.", correct:false, exp:"Faux : c'est l'inverse — la méthylation (ajout d'un groupe –CH₃ sur la cytosine) ÉTEINT le gène en le transformant en hétérochromatine. C'est la déméthylation qui l'active (euchromatine)."},
+{c:"P.4 — Méthylation", q:"Il n'est pas exact d'affirmer que la méthylation de l'ADN sur la cytosine n'active jamais l'expression d'un gène en le transformant en euchromatine.", correct:false, exp:"En levant la double négation, l'affirmation prétendrait que la méthylation active parfois l'expression du gène — c'est faux : c'est l'inverse, la méthylation (ajout d'un groupe –CH₃ sur la cytosine) ÉTEINT le gène en le transformant en hétérochromatine. C'est la déméthylation qui l'active (euchromatine)."},
 
 {c:"P.4 — Marqueurs épigénétiques", q:"Le bisphénol A (BPA) et les nitrosamines du tabac sont des exemples de facteurs environnementaux pouvant modifier l'épigénome, y compris de façon persistante.", correct:true, exp:"Exact : le BPA (perturbateur endocrinien) modifie la méthylation, et les nitrosamines du tabac induisent des modifications épigénétiques placentaires persistantes même après l'arrêt du tabac."},
 
@@ -352,29 +448,133 @@ const QUESTIONS = [
 
 ];
 
-let order = QUESTIONS.map((_,i)=>i);
-let idx = 0;
-let score = 0;
-let missed = [];      // indices missed during first pass
-let reviewQueue = [];
-let mode = "quiz";     // quiz | review | done
-let answered = false;
-let selected = null;
-
-const root = document.getElementById('root');
 const OPTS = ["Vrai","Faux"];
 const LETTERS = ["V","F"];
 
-function currentQ(){
-  if(mode==="quiz") return QUESTIONS[order[idx]];
-  if(mode==="review") return QUESTIONS[reviewQueue[idx]];
-  return null;
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
 }
+
+let order = [];           // shuffled global indices for the first pass
+let idx = 0;
+let mode = "quiz";         // quiz | review | done
+let answered = false;
+let selected = null;       // displayed index (0/1) or 'abstain'
+let optionOrder = [];      // shuffled [0,1] -> position of "Vrai"/"Faux" for the current question
+
+let missed = [];           // global indices to send to review (wrong OR abstained)
+let reviewQueue = [];
+let results = {};          // globalIndex -> 'correct' | 'wrong' | 'abstained' — FIRST PASS ONLY (used for scoring)
+
+// --- Surligneur ---
+let drawMode = false;
+let strokes = [];
+let currentStroke = null;
+let canvasEl = null;
+let canvasCtx = null;
+
+const root = document.getElementById('root');
+
 function currentGlobalIndex(){
   return mode==="quiz" ? order[idx] : reviewQueue[idx];
 }
+function currentQ(){
+  return QUESTIONS[currentGlobalIndex()];
+}
 function correctOptIndex(q){
   return q.correct ? 0 : 1; // 0 = Vrai, 1 = Faux
+}
+
+function prepareQuestion(){
+  optionOrder = shuffleArray([0,1]); // position de "Vrai" et "Faux" mélangée à chaque affichage
+  answered = false;
+  selected = null;
+  strokes = [];
+  currentStroke = null;
+}
+
+function initCanvas(){
+  canvasEl = document.getElementById('draw-canvas');
+  if(!canvasEl){ canvasCtx = null; return; }
+  const card = canvasEl.parentElement;
+  const rect = card.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvasEl.width = Math.max(1, rect.width * dpr);
+  canvasEl.height = Math.max(1, rect.height * dpr);
+  canvasEl.style.width = rect.width + 'px';
+  canvasEl.style.height = rect.height + 'px';
+  canvasCtx = canvasEl.getContext('2d');
+  canvasCtx.setTransform(dpr,0,0,dpr,0,0);
+  canvasCtx.lineJoin = 'round';
+  canvasCtx.lineCap = 'round';
+  canvasEl.style.pointerEvents = drawMode ? 'auto' : 'none';
+
+  canvasEl.onpointerdown = function(e){
+    if(!drawMode) return;
+    const r = canvasEl.getBoundingClientRect();
+    currentStroke = [{x:e.clientX-r.left, y:e.clientY-r.top}];
+    strokes.push(currentStroke);
+    canvasEl.setPointerCapture(e.pointerId);
+  };
+  canvasEl.onpointermove = function(e){
+    if(!drawMode || !currentStroke) return;
+    const r = canvasEl.getBoundingClientRect();
+    currentStroke.push({x:e.clientX-r.left, y:e.clientY-r.top});
+    redrawStrokes();
+  };
+  canvasEl.onpointerup = function(){ currentStroke = null; };
+  canvasEl.onpointercancel = function(){ currentStroke = null; };
+  canvasEl.onpointerleave = function(){ currentStroke = null; };
+
+  redrawStrokes();
+}
+
+function redrawStrokes(){
+  if(!canvasCtx || !canvasEl) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvasCtx.clearRect(0, 0, canvasEl.width/dpr, canvasEl.height/dpr);
+  canvasCtx.strokeStyle = 'rgba(255, 209, 0, 0.55)';
+  canvasCtx.lineWidth = 16;
+  strokes.forEach(function(stroke){
+    if(stroke.length < 2) return;
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(stroke[0].x, stroke[0].y);
+    for(let i=1;i<stroke.length;i++){
+      canvasCtx.lineTo(stroke[i].x, stroke[i].y);
+    }
+    canvasCtx.stroke();
+  });
+}
+
+function clearDrawing(){
+  strokes = [];
+  currentStroke = null;
+  redrawStrokes();
+}
+
+function togglePen(){
+  drawMode = !drawMode;
+  const btn = document.getElementById('pen-toggle-btn');
+  if(btn) btn.classList.toggle('active', drawMode);
+  if(canvasEl) canvasEl.style.pointerEvents = drawMode ? 'auto' : 'none';
+}
+
+window.addEventListener('resize', function(){
+  if(canvasEl){ clearDrawing(); initCanvas(); }
+});
+
+function liveScore(){
+  let raw = 0;
+  Object.values(results).forEach(r=>{
+    if(r==='correct') raw += 1;
+    else if(r==='wrong') raw -= 0.5;
+  });
+  return raw;
 }
 
 function render(){
@@ -386,63 +586,87 @@ function render(){
 
   let html = '';
   if(mode==="review"){
-    html += `<div class="review-banner">🔁 Reprise des affirmations ratées — répondez correctement pour les valider.</div>`;
+    html += `<div class="review-banner">🔁 Reprise des affirmations ratées / abstenues — répondez correctement pour les valider.</div>`;
   }
   html += `<div class="progress-row">
       <span class="progress-label">${mode==="review"?"Révision":"Question"} ${idx+1}/${total}</span>
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      ${mode==="quiz" ? `<span class="progress-label">Points : ${liveScore()}</span>` : ''}
     </div>`;
   html += `<div class="card">
       <div class="chapter">${q.c}</div>
       <div class="question">${q.q}</div>
       <div class="options">`;
-  OPTS.forEach((opt,i)=>{
+  optionOrder.forEach((originalI, displayedI)=>{
     let cls = "opt";
     if(answered){
-      if(i===correctIdx) cls += " correct";
-      else if(i===selected) cls += " wrong";
+      if(originalI===correctIdx) cls += " correct";
+      else if(displayedI===selected) cls += " wrong";
       else cls += " dim";
     }
-    html += `<button class="${cls}" data-i="${i}" ${answered?"disabled":""} onclick="handleAnswer(${i})">
-        <span class="letter">${LETTERS[i]}</span><span>${opt}</span>
+    html += `<button class="${cls}" ${answered?"disabled":""} onclick="handleAnswer(${displayedI})">
+        <span class="letter">${LETTERS[originalI]}</span><span>${OPTS[originalI]}</span>
       </button>`;
   });
   html += `</div>`;
+  html += `<div class="abstain-row">
+      <button class="abstain-btn ${selected==='abstain'?'chosen':''}" ${answered?"disabled":""} onclick="handleAbstain()">Je m'abstiens</button>
+    </div>`;
   if(answered){
-    const isCorrect = selected===correctIdx;
-    html += `<div class="feedback ${isCorrect?'ok':'bad'}">
-        <div class="fb-head">${isCorrect?'Correct':'Pas tout à fait'} — l'affirmation est ${q.correct?'VRAIE':'FAUSSE'}</div>
+    const isAbstain = selected==='abstain';
+    const isCorrect = !isAbstain && optionOrder[selected]===correctIdx;
+    const fbClass = isAbstain ? 'abst' : (isCorrect ? 'ok' : 'bad');
+    const fbHead = isAbstain
+      ? `Abstention (0 pt) — l'affirmation est ${q.correct?'VRAIE':'FAUSSE'}`
+      : (isCorrect ? `Correct (+1 pt) — l'affirmation est ${q.correct?'VRAIE':'FAUSSE'}` : `Pas tout à fait (−0.5 pt) — l'affirmation est ${q.correct?'VRAIE':'FAUSSE'}`);
+    html += `<div class="feedback ${fbClass}">
+        <div class="fb-head">${fbHead}</div>
         ${q.exp}
       </div>`;
   }
+  html += `<canvas id="draw-canvas"></canvas>`;
   html += `</div>`;
   if(answered){
     html += `<div class="nav-row"><button class="next" onclick="nextQuestion()">Suivant →</button></div>`;
   }
   root.innerHTML = html;
+  initCanvas();
 }
 
-function handleAnswer(i){
+function handleAnswer(displayedI){
   if(answered) return;
   answered = true;
-  selected = i;
+  selected = displayedI;
+  clearDrawing();
   const q = currentQ();
   const correctIdx = correctOptIndex(q);
   const gIdx = currentGlobalIndex();
+  const isCorrect = optionOrder[displayedI]===correctIdx;
   if(mode==="quiz"){
-    if(i===correctIdx){ score++; }
-    else { if(!missed.includes(gIdx)) missed.push(gIdx); }
+    results[gIdx] = isCorrect ? 'correct' : 'wrong';
+    if(!isCorrect && !missed.includes(gIdx)) missed.push(gIdx);
   } else if(mode==="review"){
-    if(i!==correctIdx){
-      reviewQueue.push(gIdx); // requeue at the end for another try
-    }
+    if(!isCorrect) reviewQueue.push(gIdx);
+  }
+  render();
+}
+
+function handleAbstain(){
+  if(answered) return;
+  answered = true;
+  selected = 'abstain';
+  clearDrawing();
+  const gIdx = currentGlobalIndex();
+  if(mode==="quiz"){
+    results[gIdx] = 'abstained';
+    if(!missed.includes(gIdx)) missed.push(gIdx);
+  } else if(mode==="review"){
+    reviewQueue.push(gIdx);
   }
   render();
 }
 
 function nextQuestion(){
-  answered = false;
-  selected = null;
   idx++;
   if(mode==="quiz"){
     if(idx >= order.length){
@@ -451,39 +675,81 @@ function nextQuestion(){
         reviewQueue = missed.slice();
         missed = [];
         idx = 0;
+        prepareQuestion();
       } else {
         mode = "done";
       }
+    } else {
+      prepareQuestion();
     }
   } else if(mode==="review"){
     if(idx >= reviewQueue.length){
       mode = "done";
+    } else {
+      prepareQuestion();
     }
   }
   render();
 }
 
+function buildChapterList(chapters){
+  if(chapters.length===0) return '';
+  const items = chapters.map(c=>`<li>${c}</li>`).join('');
+  return `<div class="weak-list"><h3>Chapitres à relire</h3><ul>${items}</ul></div>`;
+}
+
 function renderEnd(){
-  const pct = Math.round(score/QUESTIONS.length*100);
+  const n = QUESTIONS.length;
+  let correct=0, wrong=0, abstained=0;
+  const wrongChapters = new Set();
+  const abstainedChapters = new Set();
+  Object.keys(results).forEach(k=>{
+    const r = results[k];
+    const q = QUESTIONS[k];
+    if(r==='correct') correct++;
+    else if(r==='wrong'){ wrong++; wrongChapters.add(q.c); }
+    else if(r==='abstained'){ abstained++; abstainedChapters.add(q.c); }
+  });
+  const raw = correct*1 + wrong*(-0.5) + abstained*0;
+  const score20 = Math.round((raw/n*20)*10)/10;
+
+  let title, msg, chaptersToShow = [];
+  if(score20 < 10.5){
+    title = "À retravailler";
+    msg = "Vous êtes en dessous de la moyenne. Relisez les chapitres liés aux affirmations ratées et à celles où vous vous êtes abstenu(e) avant l'examen.";
+    chaptersToShow = [...new Set([...wrongChapters, ...abstainedChapters])];
+  } else if(wrong>0){
+    title = "Très bien !";
+    msg = "Vous avez la moyenne, mais quelques points méritent encore d'être relus avant l'examen :";
+    chaptersToShow = [...new Set([...wrongChapters, ...abstainedChapters])];
+  } else if(abstained>0){
+    title = "Excellent !";
+    msg = "Vous êtes prêt(e) pour l'examen. Faites tout de même attention aux points suivants, sur lesquels vous avez hésité :";
+    chaptersToShow = [...abstainedChapters];
+  } else {
+    title = "Score parfait !";
+    msg = "Score parfait dès le premier passage, sans aucune hésitation — la synthèse est bien intégrée. Vous êtes prêt(e) pour l'examen.";
+  }
+
   root.innerHTML = `
     <div class="card end-card">
       <div class="chapter">Résultat</div>
-      <div class="end-score">${score}<span>/${QUESTIONS.length}</span></div>
-      <div class="end-msg">
-        ${pct===100 ? "Score parfait dès le premier passage — la synthèse est bien intégrée." 
-          : "Vous avez terminé le Vrai/Faux. Toutes les affirmations ratées ont été reposées jusqu'à réponse correcte, avec leur explication."}
-      </div>
+      <div class="end-score">${score20}<span>/20</span></div>
+      <div class="score-detail">${correct} correcte(s) · ${wrong} incorrecte(s) · ${abstained} abstention(s) — soit ${raw} pt(s) sur ${n}</div>
+      <div class="end-msg"><strong>${title}</strong><br>${msg}</div>
+      ${buildChapterList(chaptersToShow)}
       <button class="restart" onclick="restart()">Recommencer</button>
     </div>`;
 }
 
 function restart(){
-  order = QUESTIONS.map((_,i)=>i);
-  for(let i=order.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [order[i],order[j]]=[order[j],order[i]];
-  }
-  idx=0; score=0; missed=[]; reviewQueue=[]; mode="quiz"; answered=false; selected=null;
+  order = shuffleArray(QUESTIONS.map((_,i)=>i));
+  idx=0;
+  mode="quiz";
+  missed=[];
+  reviewQueue=[];
+  results={};
+  prepareQuestion();
   render();
 }
 
